@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>星穹幸存者 · Starfall Survivors</title>
+<link rel="icon" href="data:,">
+<style>
+  html, body {
+    margin: 0; padding: 0;
+    width: 100%; height: 100%;
+    background: #060b14;
+    overflow: hidden;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+  }
+  #game-root {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+  }
+  canvas {
+    display: block;
+    image-rendering: auto;
+    outline: none;
+  }
+  #boot {
+    position: fixed; inset: 0;
+    display: flex; align-items: center; justify-content: center;
+    color: #b0c3d0; background: #060b14;
+    font-size: 14px; letter-spacing: 3px;
+    z-index: 10;
+  }
+</style>
+</head>
+<body>
+<div id="game-root"><canvas id="screen" width="1440" height="810" tabindex="0" aria-label="星穹幸存者：WASD 移动，Enter 确认，空格开启焰锋技能，Tab 专精矩阵，P 暂停"></canvas></div>
+<div id="boot">STARFALL · 正在载入星域</div>
+<script src="src/core/utils.js"></script>
+<script src="src/core/palette.js"></script>
+<script src="src/core/assets.js"></script>
+<script src="src/core/font.js"></script>
+<script src="src/core/sprites.js"></script>
+<script src="src/core/input.js"></script>
+<script src="src/core/save.js"></script>
+<script src="src/core/audio.js"></script>
+<script src="src/render/particles.js"></script>
+<script src="src/render/renderer.js"></script>
+<script src="src/render/world.js"></script>
+<script src="src/render/boss-visuals.js"></script>
+<script src="src/data/config.js"></script>
+<script src="src/data/characters.js"></script>
+<script src="src/data/weapons.js"></script>
+<script src="src/data/passives.js"></script>
+<script src="src/data/enemies.js"></script>
+<script src="src/sim/projectiles.js"></script>
+<script src="src/sim/weapons.js"></script>
+<script src="src/sim/enemies.js"></script>
+<script src="src/sim/boss.js"></script>
+<script src="src/sim/spawner.js"></script>
+<script src="src/sim/pickups.js"></script>
+<script src="src/growth/progression.js"></script>
+<script src="src/growth/constellations.js"></script>
+<script src="src/growth/player.js"></script>
+<script src="src/ui/widgets.js"></script>
+<script src="src/ui/hud.js"></script>
+<script src="src/ui/levelup.js"></script>
+<script src="src/ui/starmap.js"></script>
+<script src="src/ui/menus.js"></script>
+<script src="src/engine/game.js"></script>
+<script src="src/engine/main.js"></script>
+<script>
+  window.addEventListener('load', () => {
+    SF.boot(document.getElementById('screen')).then(() => {
+      document.getElementById('boot').remove();
+    }).catch(error => {
+      document.getElementById('boot').textContent = '素材加载失败，请刷新重试，或使用完整的 starfall.html';
+      console.error('[boot]', error);
+    });
+  });
+</script>
+</body>
+</html>

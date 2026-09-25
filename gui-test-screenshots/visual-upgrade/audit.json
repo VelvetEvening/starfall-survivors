@@ -1,0 +1,78 @@
+{
+  "date": "2026-09-06T10:34:04.310Z",
+  "results": [
+    {
+      "name": "All 14 licensed images preload before play",
+      "detail": true
+    },
+    {
+      "name": "Workshop blocks a redundant weapon purchase and accepts legacy saves",
+      "detail": true
+    },
+    {
+      "name": "Hangar / passive / workshop keyboard and mouse paths, one purchase",
+      "detail": true
+    },
+    {
+      "name": "Movement, pause freezes simulation, star map returns to a usable pause menu",
+      "detail": true
+    },
+    {
+      "name": "All weapon and passive card descriptions fit without truncation",
+      "detail": 96
+    },
+    {
+      "name": "Level-up selection by number and mouse",
+      "detail": true
+    },
+    {
+      "name": "Boss I telegraph, Boss II, and real phase-two transition render",
+      "detail": {
+        "phase": true,
+        "lock": 10,
+        "hp": 0.42
+      }
+    },
+    {
+      "name": "Screen shake is coherent across all world objects",
+      "detail": true
+    },
+    {
+      "name": "Dense-scene frame intervals (informational, hardware-dependent)",
+      "detail": {
+        "medianMs": 16.700000000000728,
+        "p95Ms": 33.399999999999636,
+        "enemies": 160,
+        "particles": 900,
+        "bullets": 104,
+        "worldDensity": 2,
+        "uiDensity": 3
+      }
+    },
+    {
+      "name": "New run and menu clear old combat effects and warnings",
+      "detail": true
+    },
+    {
+      "name": "Letterboxed mouse input and sub-480px window fit",
+      "detail": true
+    },
+    {
+      "name": "Result, reward persistence and return to menu",
+      "detail": true
+    },
+    {
+      "name": "Reset requires two confirmations; clicking outside cancels",
+      "detail": true
+    },
+    {
+      "name": "Standalone file boots and plays offline with every asset embedded",
+      "detail": true
+    },
+    {
+      "name": "No browser, renderer, update or audio exceptions",
+      "detail": true
+    }
+  ],
+  "errors": []
+}

@@ -1,0 +1,12 @@
+{
+  "sourceImages": 14,
+  "readyImages": 14,
+  "dataFilesUnchanged": [
+    "characters.js",
+    "config.js",
+    "enemies.js",
+    "passives.js",
+    "weapons.js"
+  ],
+  "license": "CC BY 4.0"
+}

@@ -1,0 +1,59 @@
+{
+  "baseline": "C:/Users/Lenovo/AppData/Local/Temp/starfall-feedback-before-20260907-011041",
+  "results": [
+    {
+      "name": "Weapon definitions and resonance unchanged",
+      "passed": true
+    },
+    {
+      "name": "Passive definitions unchanged",
+      "passed": true
+    },
+    {
+      "name": "Enemy and Boss data unchanged",
+      "passed": true
+    },
+    {
+      "name": "All original balance constants unchanged",
+      "passed": true
+    },
+    {
+      "name": "Character and node IDs preserved",
+      "passed": true
+    },
+    {
+      "name": "Character base stats, traits, weapons, workshop and home trees unchanged",
+      "passed": true
+    },
+    {
+      "name": "Character passive metadata contains only name and description strings",
+      "passed": true
+    },
+    {
+      "name": "Non-heavy node effects, costs and dependencies unchanged",
+      "passed": true
+    },
+    {
+      "name": "Heavy node costs and dependencies unchanged",
+      "passed": true
+    },
+    {
+      "name": "All fourteen art entries preserved",
+      "passed": true
+    },
+    {
+      "name": "Only the four player hulls changed",
+      "passed": true
+    },
+    {
+      "name": "All fourteen original source hashes match retained license manifest",
+      "passed": true
+    }
+  ],
+  "changedArt": [
+    "dawn.webp",
+    "firefly.webp",
+    "thunder.webp",
+    "vega.webp"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "date": "2026-09-06T05:41:45.529Z",
+  "results": [
+    {
+      "name": "All 14 licensed images preload before play",
+      "detail": true
+    },
+    {
+      "name": "Hangar / passive / workshop keyboard and mouse paths, one purchase",
+      "detail": true
+    },
+    {
+      "name": "Movement, pause freezes simulation, star map returns to a usable pause menu",
+      "detail": true
+    },
+    {
+      "name": "Level-up selection by number and mouse",
+      "detail": true
+    },
+    {
+      "name": "Boss I telegraph, Boss II, and real phase-two transition render",
+      "detail": {
+        "phase": true,
+        "lock": 10,
+        "hp": 0.42
+      }
+    },
+    {
+      "name": "Screen shake is coherent across all world objects",
+      "detail": true
+    },
+    {
+      "name": "Dense-scene frame intervals (informational, hardware-dependent)",
+      "detail": {
+        "medianMs": 66.70000000000073,
+        "p95Ms": 83.39999999999964,
+        "enemies": 160,
+        "particles": 900,
+        "bullets": 104
+      }
+    },
+    {
+      "name": "Letterboxed mouse input and sub-480px window fit",
+      "detail": true
+    },
+    {
+      "name": "Result, reward persistence and return to menu",
+      "detail": true
+    },
+    {
+      "name": "Standalone file boots and plays offline with every asset embedded",
+      "detail": true
+    },
+    {
+      "name": "No browser, renderer, update or audio exceptions",
+      "detail": true
+    }
+  ],
+  "errors": []
+}

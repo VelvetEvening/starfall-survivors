@@ -1,0 +1,45 @@
+{
+  "checks": [
+    "characters: numerical values and stable identifiers unchanged",
+    "passives: numerical values and stable identifiers unchanged",
+    "enemies: numerical values and stable identifiers unchanged",
+    "constellations: numerical values and stable identifiers unchanged",
+    "constellationMeta: numerical values and stable identifiers unchanged",
+    "resonance: numerical values and stable identifiers unchanged",
+    "config: only unused flags removed and existing armor-shock values extracted",
+    "72 weapon levels: effective stats and normal/critical damage match baseline",
+    "33 bundled modules and 16 embedded images exactly match current files"
+  ],
+  "weaponLevels": 72,
+  "modules": 33,
+  "images": 16,
+  "sourceLines": {
+    "before": 6598,
+    "after": 6383,
+    "removed": 215
+  },
+  "changedModules": [
+    "src/core/utils.js",
+    "src/core/palette.js",
+    "src/core/font.js",
+    "src/core/sprites.js",
+    "src/core/audio.js",
+    "src/render/particles.js",
+    "src/render/renderer.js",
+    "src/data/config.js",
+    "src/data/characters.js",
+    "src/data/weapons.js",
+    "src/sim/projectiles.js",
+    "src/sim/weapons.js",
+    "src/sim/enemies.js",
+    "src/sim/boss.js",
+    "src/sim/spawner.js",
+    "src/growth/player.js",
+    "src/ui/menus.js",
+    "src/engine/game.js"
+  ],
+  "bundle": {
+    "bytes": 1305722,
+    "sha256": "5385389cb4d01c37aa32396165f2e02749266d11a91e24ce8d12e4c27867d0be"
+  }
+}

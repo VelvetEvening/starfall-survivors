@@ -1,0 +1,502 @@
+{
+  "source": "E:\\Project\\Game\\GameTest\\.codex-backups\\balance-v1-20260907-163436",
+  "assumptions": {
+    "base": "零工坊、无矩阵/被动/暴击，保留角色倍率；双冰共鸣只影响控制，不增伤。",
+    "developed": "满工坊、20 点本系、列出的满级武器/被动，暴击取期望；没有假设所有矩阵同时点满。",
+    "damage": "单目标；霜翎按 Boss 可用的满冰蚀 ×1.331，其它角色无冰蚀。小怪冻结易伤另乘 ×1.2。",
+    "cadence": "焰锋用实际固定步长 360 秒孤立 Boss 木桩，分别关闭/开启技能；命中丢失、停滞、等待会降低输出。",
+    "fire": "火武直伤用平均暴击倍率换算，灼烧/火海沿用不吃火力暴击的原规则；技能额外 DPS 是同版本开启与关闭技能的差。",
+    "frost": "防反成功率是条件场景，不是实测人类成功率；穿透的普通第一击已排除在额外 DPS 之外。",
+    "armor": "震荡按护盾供应预算算上界；盾盘上界假设每击都强化，两项上界不保证可同时取得。"
+  },
+  "config": {
+    "heat": {
+      "threshold": 5,
+      "damageMul": 1.5,
+      "radius": 36
+    },
+    "normalFireCooldownMul": 1,
+    "normalBurnDurationMul": 1,
+    "capacitor": {
+      "normalDamageMul": 0.85,
+      "burstDamageMul": 3.3,
+      "burstSizeMul": 1.25
+    },
+    "frostMaxHits": null,
+    "armorShock": {
+      "threshold": 12,
+      "cooldown": 1.2,
+      "radius": 86,
+      "damage": 28,
+      "knockback": 72
+    }
+  },
+  "heat": [
+    {
+      "name": "初始飞刃",
+      "character": "vega",
+      "weapons": [
+        {
+          "id": "blade",
+          "level": 1
+        }
+      ],
+      "passives": {},
+      "matrixPoints": 0,
+      "damageMul": 1,
+      "critChance": 0,
+      "critMult": 1.5,
+      "bound": null,
+      "ordinary": {
+        "duration": 360,
+        "activations": 0,
+        "firstActivation": null,
+        "minGap": null,
+        "meanGap": null,
+        "dutyCycle": 0,
+        "activeDps": null,
+        "directDps": 12.716666666666667,
+        "burnDps": 5.753333333333424,
+        "fieldDps": 0,
+        "totalDps": 18.47000000000009,
+        "peakLayers": 0,
+        "peakBurnDps": 6
+      },
+      "skill": {
+        "duration": 360,
+        "activations": 54,
+        "firstActivation": 6.066666666666666,
+        "minGap": 6.599999999999966,
+        "meanGap": 6.6000000000000005,
+        "dutyCycle": 0,
+        "activeDps": null,
+        "directDps": 15.866666666666667,
+        "burnDps": 5.753333333333424,
+        "fieldDps": 0,
+        "totalDps": 21.62000000000009,
+        "peakLayers": 0,
+        "peakBurnDps": 6
+      },
+      "skillExtraDps": 3.1499999999999986
+    },
+    {
+      "name": "满级飞刃",
+      "character": "vega",
+      "weapons": [
+        {
+          "id": "blade",
+          "level": 6
+        }
+      ],
+      "passives": {},
+      "matrixPoints": 0,
+      "damageMul": 1,
+      "critChance": 0,
+      "critMult": 1.5,
+      "bound": null,
+      "ordinary": {
+        "duration": 360,
+        "activations": 0,
+        "firstActivation": null,
+        "minGap": null,
+        "meanGap": null,
+        "dutyCycle": 0,
+        "activeDps": null,
+        "directDps": 57.333333333333336,
+        "burnDps": 15.34222222222211,
+        "fieldDps": 0,
+        "totalDps": 72.67555555555545,
+        "peakLayers": 0,
+        "peakBurnDps": 16
+      },
+      "skill": {
+        "duration": 360,
+        "activations": 80,
+        "firstActivation": 4.316666666666666,
+        "minGap": 4.4999999999999964,
+        "meanGap": 4.5,
+        "dutyCycle": 0,
+        "activeDps": null,
+        "directDps": 71.66666666666667,
+        "burnDps": 15.34222222222211,
+        "fieldDps": 0,
+        "totalDps": 87.00888888888878,
+        "peakLayers": 0,
+        "peakBurnDps": 16
+      },
+      "skillExtraDps": 14.333333333333329
+    },
+    {
+      "name": "双火超武",
+      "character": "vega",
+      "weapons": [
+        {
+          "id": "prism",
+          "level": 4
+        },
+        {
+          "id": "nuke",
+          "level": 4
+        }
+      ],
+      "passives": {},
+      "matrixPoints": 0,
+      "damageMul": 1,
+      "critChance": 0,
+      "critMult": 1.5,
+      "bound": null,
+      "ordinary": {
+        "duration": 360,
+        "activations": 0,
+        "firstActivation": null,
+        "minGap": null,
+        "meanGap": null,
+        "dutyCycle": 0,
+        "activeDps": null,
+        "directDps": 372.0111111111111,
+        "burnDps": 46.02666666666739,
+        "fieldDps": 55.22222222222222,
+        "totalDps": 473.26000000000073,
+        "peakLayers": 0,
+        "peakBurnDps": 48
+      },
+      "skill": {
+        "duration": 360,
+        "activations": 107,
+        "firstActivation": 3.1166666666666667,
+        "minGap": 3.2499999999999996,
+        "meanGap": 3.360377358490566,
+        "dutyCycle": 0,
+        "activeDps": null,
+        "directDps": 401.9736111111111,
+        "burnDps": 46.02666666666739,
+        "fieldDps": 55.22222222222222,
+        "totalDps": 503.22250000000076,
+        "peakLayers": 0,
+        "peakBurnDps": 48
+      },
+      "skillExtraDps": 29.962500000000034
+    },
+    {
+      "name": "双火终盘",
+      "character": "vega",
+      "weapons": [
+        {
+          "id": "prism",
+          "level": 4
+        },
+        {
+          "id": "nuke",
+          "level": 4
+        }
+      ],
+      "passives": {
+        "engine": {
+          "level": 5
+        },
+        "crit": {
+          "level": 5
+        }
+      },
+      "matrixPoints": 20,
+      "damageMul": 1.4,
+      "critChance": 0.3425,
+      "critMult": 2.2125,
+      "bound": null,
+      "ordinary": {
+        "duration": 360,
+        "activations": 0,
+        "firstActivation": null,
+        "minGap": null,
+        "meanGap": null,
+        "dutyCycle": 0,
+        "activeDps": null,
+        "directDps": 740.997231527783,
+        "burnDps": 46.02666666666739,
+        "fieldDps": 56,
+        "totalDps": 843.0238981944505,
+        "peakLayers": 0,
+        "peakBurnDps": 48
+      },
+      "skill": {
+        "duration": 360,
+        "activations": 107,
+        "firstActivation": 3.1166666666666667,
+        "minGap": 3.249999999999986,
+        "meanGap": 3.354245283018868,
+        "dutyCycle": 0,
+        "activeDps": null,
+        "directDps": 800.9715435980947,
+        "burnDps": 46.02666666666739,
+        "fieldDps": 56,
+        "totalDps": 902.9982102647621,
+        "peakLayers": 0,
+        "peakBurnDps": 48
+      },
+      "skillExtraDps": 59.97431207031161
+    }
+  ],
+  "rail": [
+    {
+      "name": "电磁 Lv.1",
+      "character": "thunder",
+      "weapons": [
+        {
+          "id": "chain",
+          "level": 1
+        }
+      ],
+      "passives": {},
+      "matrixPoints": 0,
+      "damageMul": 1.2,
+      "critChance": 0,
+      "critMult": 1.5,
+      "charge": 7.2,
+      "burstInterval": 21.6,
+      "ordinaryHit": 112.2,
+      "burstHit": 435.59999999999997,
+      "originalDps": 18.333333333333332,
+      "ordinaryDps": 15.583333333333332,
+      "fullDps": 20.166666666666664,
+      "capacitorExtraDps": 1.8333333333333321,
+      "chargeAndCapacitorExtraDps": 5.499999999999998,
+      "maxCritBurst": 653.4
+    },
+    {
+      "name": "电磁 Lv.6",
+      "character": "thunder",
+      "weapons": [
+        {
+          "id": "chain",
+          "level": 6
+        }
+      ],
+      "passives": {},
+      "matrixPoints": 0,
+      "damageMul": 1.2,
+      "critChance": 0,
+      "critMult": 1.5,
+      "charge": 7.2,
+      "burstInterval": 21.6,
+      "ordinaryHit": 275.4,
+      "burstHit": 1069.2,
+      "originalDps": 45,
+      "ordinaryDps": 38.25,
+      "fullDps": 49.5,
+      "capacitorExtraDps": 4.5,
+      "chargeAndCapacitorExtraDps": 13.5,
+      "maxCritBurst": 1603.8
+    },
+    {
+      "name": "天罚 Lv.1",
+      "character": "thunder",
+      "weapons": [
+        {
+          "id": "tempest",
+          "level": 1
+        }
+      ],
+      "passives": {},
+      "matrixPoints": 0,
+      "damageMul": 1.2,
+      "critChance": 0,
+      "critMult": 1.5,
+      "charge": 4.800000000000001,
+      "burstInterval": 14.400000000000002,
+      "ordinaryHit": 306,
+      "burstHit": 1188,
+      "originalDps": 74.99999999999999,
+      "ordinaryDps": 63.749999999999986,
+      "fullDps": 82.49999999999999,
+      "capacitorExtraDps": 7.5,
+      "chargeAndCapacitorExtraDps": 22.499999999999993,
+      "maxCritBurst": 1782
+    },
+    {
+      "name": "天罚 Lv.4",
+      "character": "thunder",
+      "weapons": [
+        {
+          "id": "tempest",
+          "level": 4
+        }
+      ],
+      "passives": {},
+      "matrixPoints": 0,
+      "damageMul": 1.2,
+      "critChance": 0,
+      "critMult": 1.5,
+      "charge": 4.800000000000001,
+      "burstInterval": 14.400000000000002,
+      "ordinaryHit": 550.8,
+      "burstHit": 2138.4,
+      "originalDps": 134.99999999999997,
+      "ordinaryDps": 114.74999999999997,
+      "fullDps": 148.49999999999997,
+      "capacitorExtraDps": 13.5,
+      "chargeAndCapacitorExtraDps": 40.499999999999986,
+      "maxCritBurst": 3207.6
+    },
+    {
+      "name": "天罚终盘",
+      "character": "thunder",
+      "weapons": [
+        {
+          "id": "tempest",
+          "level": 4
+        },
+        {
+          "id": "nuke",
+          "level": 4
+        }
+      ],
+      "passives": {
+        "cooldown": {
+          "level": 5
+        },
+        "crit": {
+          "level": 5
+        }
+      },
+      "matrixPoints": 20,
+      "damageMul": 1.5,
+      "critChance": 0.3125,
+      "critMult": 2.0625,
+      "charge": 3.3360000000000007,
+      "burstInterval": 10.008000000000003,
+      "ordinaryHit": 1089.5189765625,
+      "burstHit": 4229.8972031250005,
+      "originalDps": 384.22872639388487,
+      "ordinaryDps": 326.59441743480215,
+      "fullDps": 422.6515990332733,
+      "capacitorExtraDps": 38.42287263938846,
+      "chargeAndCapacitorExtraDps": 115.26861791816543,
+      "maxCritBurst": 6549.51825
+    }
+  ],
+  "frost": [
+    {
+      "name": "满级双冰",
+      "character": "firefly",
+      "weapons": [
+        {
+          "id": "orb",
+          "level": 6
+        },
+        {
+          "id": "mirrorWheel",
+          "level": 6
+        }
+      ],
+      "passives": {},
+      "matrixPoints": 0,
+      "damageMul": 0.9,
+      "critChance": 0,
+      "critMult": 1.5,
+      "cycle": 5,
+      "window": 0.5,
+      "maxHitsPerTarget": 160,
+      "normalWeaponsDps": 50.44761904761904,
+      "iceStackExtraDpsAtFullUptime": 16.698161904761925,
+      "retaliationDpsAtEveryWindow": 41.207760000000015,
+      "extraShardDpsAtEveryWindow": 1295.1694800000005,
+      "counterExtraDpsBySuccessRate": {
+        "1": 1336.3772400000005,
+        "0.25": 334.0943100000001,
+        "0.5": 668.1886200000002
+      }
+    },
+    {
+      "name": "双冰终盘",
+      "character": "firefly",
+      "weapons": [
+        {
+          "id": "absoluteZero",
+          "level": 4
+        },
+        {
+          "id": "mirrorWheel",
+          "level": 6
+        }
+      ],
+      "passives": {
+        "cryo": {
+          "level": 5
+        },
+        "crit": {
+          "level": 5
+        }
+      },
+      "matrixPoints": 20,
+      "damageMul": 1.125,
+      "critChance": 0.22500000000000003,
+      "critMult": 1.8749999999999998,
+      "cycle": 5,
+      "window": 0.8,
+      "maxHitsPerTarget": 160,
+      "normalWeaponsDps": 119.01617588141025,
+      "iceStackExtraDpsAtFullUptime": 39.39435421674684,
+      "retaliationDpsAtEveryWindow": 91.40070585937502,
+      "extraShardDpsAtEveryWindow": 2422.1187052734376,
+      "counterExtraDpsBySuccessRate": {
+        "1": 2513.519411132813,
+        "0.25": 628.3798527832032,
+        "0.5": 1256.7597055664064
+      }
+    }
+  ],
+  "frostCrowd": [
+    {
+      "enemies": 1,
+      "contacts": 1,
+      "bossDamage": 40.728600025177,
+      "damageInSingleHits": 1.0000000006181649,
+      "freezeT": 0
+    },
+    {
+      "enemies": 3,
+      "contacts": 3,
+      "bossDamage": 122.185800075531,
+      "damageInSingleHits": 3.0000000018544943,
+      "freezeT": 0
+    },
+    {
+      "enemies": 12,
+      "contacts": 12,
+      "bossDamage": 488.743200302124,
+      "damageInSingleHits": 12.000000007417977,
+      "freezeT": 0
+    },
+    {
+      "enemies": 160,
+      "contacts": 160,
+      "bossDamage": 6516.57600402832,
+      "damageInSingleHits": 160.00000009890638,
+      "freezeT": 0
+    }
+  ],
+  "armor": [
+    {
+      "name": "基础回盾",
+      "shieldPerSecond": 0.5,
+      "shieldBudgetInterval": 24,
+      "shockHit": 33.6,
+      "shockDpsUpper": 1.4000000000000001,
+      "shieldDiscExtraDpsUpper": 30.54545454545455,
+      "duration": 360,
+      "shocks": 12,
+      "measuredShockDps": 1.1199999999999999
+    },
+    {
+      "name": "壁垒终盘",
+      "shieldPerSecond": 0.8,
+      "shieldBudgetInterval": 15,
+      "shockHit": 40.32,
+      "shockDpsUpper": 2.688,
+      "shieldDiscExtraDpsUpper": 43.870909090909095,
+      "duration": 360,
+      "shocks": 18,
+      "measuredShockDps": 2.016
+    }
+  ]
+}

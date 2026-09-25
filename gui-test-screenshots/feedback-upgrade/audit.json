@@ -1,0 +1,112 @@
+{
+  "date": "2026-09-11T11:38:55.366Z",
+  "results": [
+    {
+      "name": "All 16 licensed images preload before play",
+      "detail": true
+    },
+    {
+      "name": "Workshop permits five weapon upgrades, enters at Lv.6, blocks a sixth and accepts legacy saves",
+      "detail": true
+    },
+    {
+      "name": "Hangar / passive / workshop keyboard and mouse paths, one purchase",
+      "detail": true
+    },
+    {
+      "name": "Movement, pause freezes simulation, star map returns to a usable pause menu",
+      "detail": true
+    },
+    {
+      "name": "All weapon and passive card descriptions fit without truncation",
+      "detail": 108
+    },
+    {
+      "name": "Level-up selection by number and mouse",
+      "detail": true
+    },
+    {
+      "name": "Real Boss spawn and rage paths select and intensify the score",
+      "detail": {
+        "tracks": [
+          {
+            "name": "boss",
+            "final": false
+          },
+          {
+            "name": "boss",
+            "final": true
+          }
+        ],
+        "firstPhase": 2,
+        "secondPhase": 1,
+        "track": "boss"
+      }
+    },
+    {
+      "name": "All six heavy specialization nodes activate through keyboard and mouse at a total cost of 20",
+      "detail": true
+    },
+    {
+      "name": "Frost counter impact renders once at the attacker position",
+      "detail": true
+    },
+    {
+      "name": "Boss I telegraph, Boss II, and real phase-two transition render",
+      "detail": {
+        "phase": true,
+        "lock": 10,
+        "hp": 0.42
+      }
+    },
+    {
+      "name": "Screen shake is coherent across all world objects",
+      "detail": true
+    },
+    {
+      "name": "Dense-scene frame intervals (informational, hardware-dependent)",
+      "detail": {
+        "medianMs": 33.29999999999927,
+        "p95Ms": 33.400000000001455,
+        "enemies": 160,
+        "particles": 900,
+        "bullets": 104,
+        "worldDensity": 2,
+        "uiDensity": 3
+      }
+    },
+    {
+      "name": "New run and menu clear old combat effects and warnings",
+      "detail": true
+    },
+    {
+      "name": "Letterboxed mouse input and sub-480px window fit",
+      "detail": true
+    },
+    {
+      "name": "Result, reward persistence and return to menu",
+      "detail": true
+    },
+    {
+      "name": "Reset requires two confirmations; clicking outside cancels",
+      "detail": true
+    },
+    {
+      "name": "Actual storage failure leaves workshop funds intact and allows retry",
+      "detail": true
+    },
+    {
+      "name": "Failed result retains its snapshot; Enter retries exactly once, reward survives reload",
+      "detail": true
+    },
+    {
+      "name": "Standalone file boots and plays offline with every asset embedded",
+      "detail": true
+    },
+    {
+      "name": "No browser, renderer, update or audio exceptions",
+      "detail": true
+    }
+  ],
+  "errors": []
+}

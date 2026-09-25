@@ -1,0 +1,35 @@
+{
+  "checks": [
+    "weapons: unchanged",
+    "passives: unchanged",
+    "enemies: unchanged",
+    "constellations: unchanged",
+    "constellationMeta: unchanged",
+    "resonance: unchanged",
+    "Only two character balance configurations added",
+    "Character IDs, stats, workshop rules, starting weapons and specializations preserved",
+    "72 common weapon level specs and raw normal/critical damage values preserved",
+    "33 bundled runtime modules and 16 embedded images match source exactly",
+    "9 documentation files / 59 local links valid"
+  ],
+  "weaponLevels": 72,
+  "modules": 33,
+  "images": 16,
+  "localLinks": 59,
+  "changedRuntimeModules": [
+    "src/core/audio.js",
+    "src/data/config.js",
+    "src/data/characters.js",
+    "src/sim/projectiles.js",
+    "src/sim/weapons.js",
+    "src/sim/enemies.js",
+    "src/growth/progression.js",
+    "src/growth/player.js",
+    "src/ui/hud.js",
+    "src/ui/menus.js"
+  ],
+  "bundle": {
+    "bytes": 1317928,
+    "sha256": "803868383346013ab9b143cf108165f84874839f916a3280c5fc711777a30937"
+  }
+}

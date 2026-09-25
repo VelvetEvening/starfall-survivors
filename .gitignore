@@ -1,0 +1,33 @@
+# dependencies
+node_modules/
+__pycache__/
+
+# build artifacts
+dist/
+
+# os / editor
+.DS_Store
+Thumbs.db
+.vscode/
+.idea/
+
+# generated visual/audio reports (JSON evidence remains tracked)
+gui-test-screenshots/**/*.png
+gui-test-screenshots/**/*.wav
+gui-test-screenshots/**/*.webm
+
+# local-only docs
+AGENTS.md
+
+# backend is maintained separately from the frontend repository
+/server/
+
+# local server secrets and databases
+server/.env
+server/.env.staging
+server/.env.production
+server/.dnshe-acme.env
+.dnshe-acme.env
+server/data/*.sqlite
+server/data/*.sqlite-*
+server/tests/.tmp/

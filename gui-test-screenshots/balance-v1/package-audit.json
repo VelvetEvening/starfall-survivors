@@ -1,0 +1,10 @@
+{
+  "date": "2026-09-07T12:22:50.660Z",
+  "modules": 33,
+  "embeddedImages": 16,
+  "bytes": 1321579,
+  "sha256": "37b48a35ec8b911e4ce48fe56fd84d387047c71ba42914bb6f5a42ab9f826e59",
+  "matchingSource": true,
+  "reproducible": true,
+  "documentLinks": []
+}
