@@ -6,7 +6,7 @@
   // 尺寸仅影响美术；碰撞半径仍完全由原数值表决定。
   const manifest = {
     player_vega: ['vega', 16], player_firefly: ['firefly', 17],
-    player_dawn: ['dawn', 20], player_thunder: ['thunder', 18],
+    player_thunder: ['thunder', 18],
     grub: ['grub', 9], crab: ['crab', 13], falcon: ['falcon', 13],
     jelly: ['jelly', 17], turret: ['turret', 15],
     eliteGrub: ['elite-grub', 26], eliteCrab: ['elite-crab', 28],

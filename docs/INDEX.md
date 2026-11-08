@@ -15,8 +15,9 @@
 
 ## 审查证据与历史快照
 
+- [V2_ACCEPTANCE.md](V2_ACCEPTANCE.md)：当前 v2.0 变更、验收入口、测试结果和待试玩评估项。
 - [BUGFIX_AUDIT_20260911.md](BUGFIX_AUDIT_20260911.md)：本地与服务器 Bug 修复、死代码清理、测试和远端回滚材料。
-- BALANCE_AUDIT.md：平衡审查结果与测试证据。
+- BALANCE_AUDIT.md：v1 历史平衡审查结果与测试证据。
 - LOCAL_V1.md：本地 v1.0.0 基线记录。
 - CHARACTER_UPDATE.md：四机体统一更新记录。
 - CLEANUP_AUDIT.md、FEEDBACK_AUDIT.md、ART_AUDIT.md：对应轮次的清理、反馈和素材审查。

@@ -15,13 +15,11 @@
       this.cdTimer = 0.3;           // 开局短蓄力
       this.laserAngle = rand(TAU);
       this.laserTick = 0;
-      this.satAngle = 0;
-      this.satHits = new Map();     // enemy uid → 可再次命中时刻
+      this.laserSweepT = 0; this.laserRestT = 0; this.laserAim = 0;
       this.frostEmpowered = false;
       this.charges = 0;
       this.chargeT = 0;
       this.burstFlashT = 0;
-      this.shieldSwing = null;
       this.recalc();
     }
 
@@ -57,6 +55,7 @@
         d *= 1 + (s.boltDmg || 0); // 磁轨矩阵「聚束导轨」：雷系武器伤害加成
       }
       if (this.def.element === 'ice') d *= 1 + (s.iceDmg || 0);
+      if (this.def.element === 'fire') d *= 1 + (s.fireDmg || 0);
       if (s.critChance > 0 && chance(s.critChance)) d *= s.critMult;
       return d;
     }
@@ -66,8 +65,13 @@
       const spec = this.spec;
       const res = player.stats.resonance;
       const out = { ...spec };
+      if (this.def.id === 'mirrorWheel' || this.def.id === 'frostLance') {
+        out.speed *= 1 + (player.stats.frostProjectileSpeed || 0);
+      }
       const area = (player.stats.areaMul || 1)
-        * (this.def.element === 'ice' ? 1 + (player.stats.iceAreaMul || 0) : 1);
+        * (this.def.element === 'ice' ? 1 + (player.stats.iceAreaMul || 0) :
+          this.def.element === 'bolt' ? 1 + (player.stats.boltAreaMul || 0) :
+            this.def.element === 'fire' ? 1 + (player.stats.fireAreaMul || 0) : 1);
       if (area !== 1) {
         if (out.blast) out.blast *= area;
         if (out.radius) out.radius *= area;
@@ -81,7 +85,7 @@
         const active = player.fireOverdriveT > 0;
         out.burnDuration = (spec.burnDuration || SF.config.FIRE_BASE_BURN_DURATION)
           * (active ? SF.config.VEGA_HEAT.burnDurationMul : SF.config.FIRE_BURN_DURATION_MUL)
-          * (player.traits.layeredBurn ? SF.config.VEGA_BURN_DURATION_MUL : 1);
+          * (player.traits.layeredBurn ? SF.config.VEGA_BURN_DURATION_MUL : 1) * (1 + (player.stats.burnDuration || 0));
         out.burnStacking = !!player.traits.layeredBurn;
         out.burnIndicator = !!player.traits.layeredBurn;
       }
@@ -98,10 +102,6 @@
       const player = game.player;
       this.owner = player; // 供 drawExtras 使用
       this.burstFlashT = Math.max(0, this.burstFlashT - dt);
-      if (this.shieldSwing) {
-        this.shieldSwing.t += dt;
-        if (this.shieldSwing.t >= this.shieldSwing.life) this.shieldSwing = null;
-      }
 
       // BOSS2「深渊停滞」：所有武器冷却与蓄力冻结（无法攻击或积累攻击）
       if (player.weaponLockT > 0) return;
@@ -114,7 +114,6 @@
         }
       }
       if (this.def.id === 'laser' || this.def.id === 'spectrum') this.updateLaser(dt, game);
-      if (this.def.id === 'satellite' || this.def.id === 'galaxy') this.updateSatellite(dt, game);
       if (this.def.id === 'chain' || this.def.id === 'tempest') this.updateRailgun(dt, game);
     }
 
@@ -173,7 +172,7 @@
         if (shot.radius) shot.radius *= capacitor.burstSizeMul;
         if (shot.width) shot.width *= capacitor.burstSizeMul;
       }
-      // 天罚保持一束、每敌一次；普通形态满仓合成一发，不产生额外电弧或副弹。
+      // 天罚保持一束、每敌一次；电弧仅是表现，普通形态满仓仍只合成一发。
       if (shot.beam) this.fireBeam(angle, game, shot);
       else {
         const value = this.rollDamage(shot.damage, player);
@@ -184,16 +183,17 @@
         }
       }
       SF.renderer.addShake(burst ? 5 : 4, 0.25);
+      SF.particles.discharge(player.x, player.y, { radius: burst ? 22 : 15, life: 0.22 });
       if (burst) SF.audio.sfx.railBurst();
-      else { SF.audio.sfx.shootBolt(); SF.audio.sfx.explosion(); }
+      else SF.audio.sfx.shootBolt();
     }
 
-    // 天罚光束：瞬时直线判定（长 520 横贯屏幕、宽 9→13），每敌单次结算，范围随专精矩阵 areaMul 增长
+    // 天罚光束：瞬时直线判定（长 520、宽 22→26），每敌单次结算。
     fireBeam(angle, game, spec) {
       const player = game.player;
       const dx = Math.cos(angle), dy = Math.sin(angle);
       const len = spec.length, halfW = (spec.width || 8) / 2;
-      let hitAny = false;
+      let hitAny = false, feedback = 0;
       for (const e of game.enemies.list) {
         if (e.dead) continue;
         const px = e.x - player.x, py = e.y - player.y;
@@ -204,18 +204,18 @@
           const value = this.rollDamage(spec.damage, player);
           e.takeDamage(value, game, 'bolt0');
           SF.particles.spark(e.x, e.y, angle + Math.PI / 2, { color: 'bolt2', count: 4, speed: 90 });
-          SF.particles.floatText(e.x, e.y - 8, `${Math.round(value)}`, { color: SF.palette.css('bolt0'), size: 8 });
+          if (feedback++ < 8) SF.particles.discharge(e.x, e.y, { radius: Math.min(16, e.radius + 6) });
           hitAny = true;
         }
       }
-      // 光束视觉：复用 lightning 渐隐线段（带 width 画粗芯）
+      // 发射瞬间已完成伤害结算；满仓只延长余辉，不注册持续碰撞或二次命中。
       game.lightning.push({
         points: [
           { x: player.x, y: player.y },
           { x: player.x + dx * len, y: player.y + dy * len },
         ],
-        t: 0, life: spec.empowered ? 0.4 : 0.3,
-        color: spec.empowered ? 'white' : 'bolt2', color2: 'bolt0', width: spec.width || 8,
+        t: 0, life: spec.beamLife * (spec.empowered ? SF.config.THUNDER_CAPACITOR.burstBeamLifeMul : 1),
+        color: spec.empowered ? 'white' : 'bolt2', color2: 'bolt0', width: spec.width || 8, electric: true,
       });
       if (hitAny) SF.audio.sfx.railHit();
     }
@@ -251,7 +251,8 @@
           SF.audio.sfx.shootOrb();
           return true;
         }
-        case 'mirrorWheel': {
+        case 'mirrorWheel':
+        case 'frostLance': {
           const target = game.enemies.nearest(player.x, player.y, spec.targetRange);
           if (!target) return false;
           const angle = angleTo(player.x, player.y, target.x, target.y);
@@ -263,8 +264,6 @@
           SF.audio.sfx.shootOrb();
           return true;
         }
-        case 'shieldDisc':
-          return this.fireShieldDisc(game, spec);
         case 'missile':
         case 'nuke': {
           const n = spec.count || 1;
@@ -303,23 +302,33 @@
     }
 
     updateLaser(dt, game) {
-      const player = game.player;
-      const spec = this.scaledSpec(player);
-      this.laserAngle += spec.rotSpeed * dt;
-      this.laserTick -= dt;
-      const len = spec.length;
-      const dx = Math.cos(this.laserAngle), dy = Math.sin(this.laserAngle);
-      if (this.laserTick <= 0) {
-        this.laserTick = spec.tick;
-        this.beamDamage(game, player, spec, dx, dy, len, 1);
-        // 光谱裁决副光束：反向短束、半伤害（drawExtras 画的裂变副束真实结算，不再纯视觉）
-        if (spec.fork) this.beamDamage(game, player, spec, -dx, -dy, len * 0.7, 0.5);
+      const player = game.player, spec = this.scaledSpec(player);
+      if (this.laserSweepT <= 0) {
+        this._laserRender = null;
+        this.laserRestT = Math.max(0, this.laserRestT - dt);
+        if (this.laserRestT > 0) return;
+        const target = game.enemies.nearest(player.x, player.y, spec.length);
+        if (!target) return;
+        this.laserAim = angleTo(player.x, player.y, target.x, target.y);
+        this.laserSweepT = spec.sweepDuration;
+        this.laserTick = 0;
+        SF.audio.sfx.laserStart(this.def.super);
       }
-      this._laserRender = { len };
+      const progress = 1 - this.laserSweepT / spec.sweepDuration;
+      this.laserAngle = this.laserAim + (progress - 0.5) * spec.sweepArc;
+      this.laserTick -= dt;
+      if (this.laserTick <= 0) {
+        this.laserTick += spec.tick;
+        this.beamDamage(game, player, spec, Math.cos(this.laserAngle), Math.sin(this.laserAngle), spec.length);
+      }
+      this._laserRender = { len: spec.length };
+      this.laserSweepT = Math.max(0, this.laserSweepT - dt);
+      if (this.laserSweepT === 0) this.laserRestT = spec.sweepPause;
     }
 
-    // 沿单位方向 (dx,dy) 的光束伤害结算；mul 为伤害系数（副光束 0.5）
-    beamDamage(game, player, spec, dx, dy, len, mul) {
+    // 沿唯一射线结算，每个目标每 tick 一次；外围电弧不另行命中。
+    beamDamage(game, player, spec, dx, dy, len) {
+      let feedback = 0;
       for (const e of game.enemies.list) {
         if (e.dead) continue;
         const px = e.x - player.x, py = e.y - player.y;
@@ -327,151 +336,67 @@
         const cx = player.x + dx * tproj, cy = player.y + dy * tproj;
         const rr = e.radius + 3;
         if (dist2(cx, cy, e.x, e.y) < rr * rr) {
-          const value = this.rollDamage(spec.damage * mul, player);
+          const value = this.rollDamage(spec.damage, player);
           e.takeDamage(value, game, 'bolt0');
           SF.particles.spark(cx, cy, Math.atan2(dy, dx) + Math.PI / 2, {
-            color: mul < 1 ? 'hero1' : 'bolt1', count: 1, speed: 40, life: 0.2,
+            color: 'bolt1', count: 1, speed: 40, life: 0.2,
           });
+          if (feedback++ < 8) SF.particles.discharge(cx, cy, { radius: this.def.super ? 10 : 6, life: 0.12 });
         }
       }
     }
 
-    updateSatellite(dt, game) {
-      const player = game.player;
-      const spec = this.scaledSpec(player);
-      this.satAngle += spec.rotSpeed * dt;
-      const n = spec.count || 1;
-      for (let i = 0; i < n; i++) {
-        const a = this.satAngle + (TAU / n) * i;
-        const sx = player.x + Math.cos(a) * spec.radius;
-        const sy = player.y + Math.sin(a) * spec.radius;
-        for (const e of game.enemies.list) {
-          if (e.dead) continue;
-          if ((this.satHits.get(e.uid) || 0) > game.time) continue;
-          const rr = e.radius + 5;
-          if (dist2(sx, sy, e.x, e.y) < rr * rr) {
-            this.satHits.set(e.uid, game.time + spec.hitInterval);
-            const value = this.rollDamage(spec.damage, player);
-            e.takeDamage(value, game, 'hero0');
-            if (spec.knockback) e.knockback(sx, sy, spec.knockback);
-            SF.particles.spark(sx, sy, a, { color: 'hero1', count: 2, speed: 50 });
-          }
-        }
-      }
-      this._satRender = { n, radius: spec.radius };
-    }
-
-    fireShieldDisc(game, spec) {
-      const player = game.player;
-      const target = game.enemies.nearest(player.x, player.y, Infinity);
-      if (!target) return false;
-      const aim = angleTo(player.x, player.y, target.x, target.y);
-      const halfArc = spec.arc * 0.5;
-      const range2 = spec.range * spec.range;
-      const empowered = !!player.shieldDiscEmpowered;
-      this.shieldSwing = { x: player.x, y: player.y, aim, halfArc, range: spec.range,
-        empowered, t: 0, life: empowered ? 0.38 : 0.3 };
-      SF.audio.sfx.armorShock();
-      for (const e of game.enemies.list) {
-        if (e.dead || dist2(player.x, player.y, e.x, e.y) > range2) continue;
-        let da = Math.atan2(e.y - player.y, e.x - player.x) - aim;
-        da = Math.atan2(Math.sin(da), Math.cos(da));
-        if (Math.abs(da) > halfArc) continue;
-        const value = this.rollDamage(spec.damage * (empowered ? spec.empoweredDamageMul : 1), player);
-        e.takeDamage(value, game, 'hero1');
-        if (spec.knockback) e.knockback(player.x, player.y, spec.knockback);
-        SF.particles.spark(e.x, e.y, aim, { color: empowered ? 'white' : 'armor0', count: empowered ? 9 : 6, speed: 100 });
-        SF.particles.ring(e.x, e.y, { color: 'armor0', maxR: 12, life: 0.2, width: 1.5 });
-      }
-      if (empowered) player.shieldDiscEmpowered = false;
-      return true;
-    }
-
-    // ---------- 渲染附加体（激光束 / 卫星 / 电磁炮蓄力指示） ----------
+    // ---------- 渲染附加体（激光束 / 电磁炮蓄力指示） ----------
     drawExtras(ctx) {
       const owner = this.owner;
       if (!owner) return;
       const R = SF.renderer;
       const pal = SF.palette;
-      if (this.shieldSwing) {
-        const f = this.shieldSwing, k = f.t / f.life;
-        const p = R.toScreen(f.x, f.y), radius = f.range * (0.35 + 0.65 * Math.min(1, k / 0.45));
-        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(f.aim);
-        ctx.globalAlpha = (1-k) * (f.empowered ? 0.9 : 0.75);
-        ctx.fillStyle = pal.css('armor0',0.16);
-        ctx.beginPath();ctx.moveTo(0,0);ctx.arc(0,0,f.range,-f.halfArc,f.halfArc);ctx.closePath();ctx.fill();
-        for (const offset of [0, -6]) {
-          ctx.strokeStyle = pal.css(offset === 0 ? 'white' : 'armor0');
-          ctx.lineWidth = offset === 0 ? (f.empowered ? 3 : 2) : 1;
-          ctx.beginPath();ctx.arc(0,0,Math.max(1,radius+offset),-f.halfArc,f.halfArc);ctx.stroke();
-        }
-        // 可见盾面沿攻击方向推出，范围扇形与真实判定保持一致。
-        ctx.translate(radius*0.65,0);ctx.fillStyle=pal.css('metalDark');ctx.strokeStyle=pal.css('armor0');ctx.lineWidth=1.5;
-        ctx.beginPath();ctx.moveTo(-5,-9);ctx.lineTo(5,-7);ctx.lineTo(8,0);ctx.lineTo(5,7);ctx.lineTo(-5,9);ctx.closePath();ctx.fill();ctx.stroke();
-        ctx.strokeStyle=pal.css('white');ctx.beginPath();ctx.moveTo(0,-5);ctx.lineTo(3,0);ctx.lineTo(0,5);ctx.stroke();ctx.restore();
-      }
-      // 超电磁炮：蓄力环 + 就绪瞄准提示
-      if (this.spec.charge !== undefined) {
-        const o = owner;
-        const full = this.charges >= o.stats.railgunStorage;
-        const pct = full ? 1 : this.chargeProgress;
-        const s = R.toScreen(o.x, o.y);
-        ctx.strokeStyle = pal.css(this.railgunReady ? 'bolt2' : 'bolt0', 0.8);
-        ctx.lineWidth = 1.5;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, 9, -Math.PI / 2, -Math.PI / 2 + TAU * pct);
-        ctx.stroke();
-        if (this.railgunReady) {
-          const pulse = 0.5 + 0.5 * Math.sin(o.visT * 5);
-          ctx.strokeStyle = pal.css('bolt1', 0.4 + 0.4 * pulse);
-          ctx.lineWidth = 1;
+      // 就绪时短电弧环绕机体；满仓更明亮，存弹数量只在底部 HUD 显示。
+      // 所有点由逻辑时间推导，不积累粒子、消费随机数或参与碰撞。
+      if (this.railgunReady && owner.weaponLockT <= 0 && !owner.dead) {
+        const full = this.railgunBurstReady, time = R.reducedMotion ? 0 : owner.visT;
+        const s = R.toScreen(owner.x, owner.y), count = full ? 3 : 2;
+        const radius = full ? 14 : 12.5, span = full ? 1.18 : 0.95;
+        const phase = time * (full ? 0.8 : 0.55), frame = Math.floor(time * 10);
+        const pulse = 0.85 + 0.15 * Math.sin(time * 2.8);
+        R.glow(owner.x, owner.y, full ? 22 : 18, 'bolt0', (full ? 0.19 : 0.10) * pulse);
+        ctx.save(); ctx.translate(s.x, s.y); ctx.lineJoin = 'round'; ctx.lineCap = 'round';
+        for (let arc = 0; arc < count; arc++) {
+          const start = phase + arc * TAU / count;
           ctx.beginPath();
-          ctx.arc(s.x, s.y, 11 + pulse * 2, 0, TAU);
-          ctx.stroke();
-          // 存弹指示：每个已存弹在环外一枚小亮点
-          const store = this.charges;
-          for (let i = 0; i < o.stats.railgunStorage; i++) {
-            const a = -Math.PI / 2 - 0.6 + i * 0.6;
-            ctx.fillStyle = pal.css(i < store ? (this.railgunBurstReady ? 'white' : 'bolt2') : 'uiLine');
-            ctx.fillRect(s.x + Math.cos(a) * 14 - 1, s.y + Math.sin(a) * 14 - 1, 2, 2);
+          for (let i = 0; i <= 12; i++) {
+            const k = i / 12, angle = start + k * span;
+            const r = radius + Math.sin(i * 2.3 + frame * 1.7 + arc) * Math.sin(k * Math.PI) * 1.15;
+            const x = Math.cos(angle) * r, y = Math.sin(angle) * r;
+            if (i === 0) ctx.moveTo(x, y); else ctx.lineTo(x, y);
           }
-          if (this.railgunBurstReady) {
-            for (const side of [-1, 1]) {
-              ctx.strokeStyle = pal.css('bolt2', 0.65 + pulse * 0.3); ctx.lineWidth = 1.2;
-              ctx.beginPath(); ctx.moveTo(s.x + side * 13, s.y - 5);
-              ctx.lineTo(s.x + side * 16, s.y); ctx.lineTo(s.x + side * 13, s.y + 5); ctx.stroke();
-            }
-          }
+          ctx.strokeStyle = pal.css('bolt0', 0.16 * pulse); ctx.lineWidth = full ? 4 : 3; ctx.stroke();
+          ctx.strokeStyle = pal.css('bolt1', (full ? 0.85 : 0.62) * pulse); ctx.lineWidth = full ? 1.45 : 1.1; ctx.stroke();
+          ctx.strokeStyle = pal.css('bolt2', (full ? 0.95 : 0.7) * pulse); ctx.lineWidth = 0.45; ctx.stroke();
         }
+        ctx.restore();
       }
       if (this._laserRender && owner.weaponLockT <= 0) {
-        // 武器停滞时不渲染激光（冻结的光束不再结算伤害，视觉保持诚实）
-        const { len } = this._laserRender;
-        const p = R.toScreen(owner.x, owner.y);
-        const fork = this.def.id === 'spectrum';
-        const drawBeam = (angle, l) => {
-          const x2 = p.x + Math.cos(angle) * l, y2 = p.y + Math.sin(angle) * l;
-          ctx.strokeStyle = pal.css('bolt0', 0.12);
-          ctx.lineWidth = 6;
-          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(x2, y2); ctx.stroke();
-          ctx.strokeStyle = pal.css('bolt2',0.9);
-          ctx.lineWidth = 0.85;
-          ctx.beginPath(); ctx.moveTo(p.x, p.y); ctx.lineTo(x2, y2); ctx.stroke();
-        };
-        drawBeam(this.laserAngle, len);
-        if (fork) drawBeam(this.laserAngle + Math.PI, len * 0.7);
-      }
-      if (this._satRender) {
-        const { n, radius } = this._satRender;
-        R.strokeCircle(owner.x,owner.y,radius,pal.css('hero0'),0.4,0.12);
-        for (let i = 0; i < n; i++) {
-          const a = this.satAngle + (TAU / n) * i;
-          R.drawSprite(SF.sprites.glow('satellite', pal.css('hero1'), 2),
-            owner.x + Math.cos(a) * radius, owner.y + Math.sin(a) * radius, { rot: a });
+        const { len } = this._laserRender, p = R.toScreen(owner.x, owner.y);
+        const evolved = this.def.id === 'spectrum', width = evolved ? 6 : 2;
+        ctx.save();ctx.translate(p.x,p.y);ctx.rotate(this.laserAngle);
+        // 一条固定宽度的高压通道；折线电弧始终束缚在同一束内。
+        ctx.fillStyle=pal.css('bolt0',evolved?0.18:0.1);ctx.fillRect(0,-width/2,len,width);
+        ctx.strokeStyle=pal.css('bolt2',evolved?0.7:0.35);ctx.lineWidth=evolved?1.5:0.5;
+        ctx.beginPath();ctx.moveTo(0,0);ctx.lineTo(len,0);ctx.stroke();
+        R.electricArc(ctx,0,0,len,0,{time:owner.visT,amplitude:evolved?2.4:2,width:evolved?1.1:0.8,seed:2});
+        if(evolved)R.electricArc(ctx,0,0,len,0,{time:owner.visT,amplitude:2.1,width:0.65,seed:11});
+        // 电极短路与终端电火花强化电元素识别，不生成副束。
+        for(const side of [-1,1]) {
+          ctx.strokeStyle=pal.css('bolt1',0.8);ctx.lineWidth=evolved?1.4:0.8;
+          ctx.beginPath();ctx.moveTo(-2,side*5);ctx.lineTo(6,side*5);ctx.lineTo(9,side*2);ctx.stroke();
         }
+        R.electricArc(ctx,5,-4,5,4,{time:owner.visT,amplitude:1.8,width:0.8,seed:6});
+        ctx.restore();
       }
-      if (this.def.id === 'mirrorWheel' && this.frostEmpowered) {
-        R.drawSprite(SF.sprites.glow('frostShard', pal.css('ice2'), 2),
+      if ((this.def.id === 'mirrorWheel' || this.def.id === 'frostLance') && this.frostEmpowered) {
+        R.drawSprite(SF.sprites.glow(this.def.icon, pal.css('ice2'), 2),
           owner.x, owner.y - 22, { scale: 0.65 });
       }
     }

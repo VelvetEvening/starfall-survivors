@@ -63,6 +63,7 @@
       p.bob += dt * 4;
       if (p.t >= p.life && p.kind !== 'chest') { list.splice(i, 1); continue; }
 
+      const oldX = p.x, oldY = p.y;
       // 阻尼
       p.vx *= Math.pow(0.9, dt * 60);
       p.vy *= Math.pow(0.9, dt * 60);
@@ -80,8 +81,14 @@
       }
 
       // 拾取判定
-      const pr = p.kind === 'chest' ? 10 : 7;
-      if (d2 < pr * pr) {
+      const pr = SF.config.PICKUP_RADII[p.kind];
+      const from = pl.pickupFrom || pl;
+      const ax = oldX - from.x, ay = oldY - from.y;
+      const bx = p.x - pl.x, by = p.y - pl.y;
+      const dx = bx - ax, dy = by - ay, length2 = dx * dx + dy * dy;
+      const t = length2 ? Math.max(0, Math.min(1, -(ax * dx + ay * dy) / length2)) : 0;
+      const distance2 = (ax + t * dx) ** 2 + (ay + t * dy) ** 2;
+      if (distance2 <= pr * pr) {
         collect(p, game);
         list.splice(i, 1);
       }
@@ -98,7 +105,6 @@
         break;
       case 'magnet':
         magnetAll(game);
-        SF.particles.floatText(p.x, p.y, '磁力风暴!', { color: SF.palette.css('bolt1'), size: 9 });
         SF.audio.sfx.chest();
         break;
       case 'heal':

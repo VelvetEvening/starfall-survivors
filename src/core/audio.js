@@ -147,7 +147,11 @@
   // ---------- 音效库 ----------
   const sfx = {
     shootBlade()      { tone({ type: 'triangle', freq: 880, slide: 660, dur: 0.06, vol: 0.06 }); },
-    shootBolt()       { tone({ type: 'square', freq: 1200, slide: 400, dur: 0.07, vol: 0.07 }); },
+    shootBolt() {
+      noise({ dur: 0.055, vol: 0.18, freq: 6200, slide: 2400, q: 1.4 });
+      tone({ type: 'sawtooth', freq: 1400, slide: 180, dur: 0.14, vol: 0.12, cutoff: 3200 });
+      tone({ type: 'sine', freq: 110, slide: 42, dur: 0.2, vol: 0.14 });
+    },
     shootOrb()        { tone({ type: 'sine', freq: 300, slide: 520, dur: 0.12, vol: 0.09 }); },
     heatReady() {
       tone({ type: 'triangle', freq: 440, slide: 880, dur: 0.16, vol: 0.09 });
@@ -164,12 +168,6 @@
       tone({ type: 'sawtooth', freq: 1500, slide: 160, dur: 0.17, vol: 0.16, cutoff: 3200 });
       tone({ type: 'sine', freq: 95, slide: 32, dur: 0.38, vol: 0.3 });
       noise({ dur: 0.26, vol: 0.22, freq: 2400, slide: 380, q: 0.7 });
-    },
-    armorShock() {
-      // 护盾释放用短金属冲击，避免与玩家掉血的下滑警报混淆。
-      tone({ type: 'triangle', freq: 280, slide: 120, dur: 0.16, vol: 0.18 });
-      tone({ type: 'sine', freq: 85, slide: 42, dur: 0.28, vol: 0.22 });
-      noise({ dur: 0.1, vol: 0.16, freq: 2200, q: 1.6 });
     },
     iceRetaliate() {
       // 防反首击：冰层断裂的瞬态、错开的碎晶脆响、低频冲击和短冰屑尾音。
@@ -193,7 +191,11 @@
     shootMissile()    { tone({ type: 'sawtooth', freq: 220, slide: 90, dur: 0.18, vol: 0.10 }); },
     // 超电磁炮命中：高频电弧下滑 + 金属噪声脆响 + 低频冲击，穿透大量敌人时每次 update 只播一次
     railHit()         { tone({ type: 'square', freq: 1400, slide: 180, dur: 0.12, vol: 0.14 }); noise({ dur: 0.15, vol: 0.18, freq: 2400, q: 0.8 }); tone({ type: 'sine', freq: 160, slide: 50, dur: 0.12, vol: 0.15 }); },
-    laserStart()      { tone({ type: 'sawtooth', freq: 180, slide: 420, dur: 0.3, vol: 0.08 }); },
+    laserStart(superBeam = false) {
+      noise({ dur: 0.045, vol: superBeam ? 0.11 : 0.085, freq: 5400, slide: 2100, q: 1.2 });
+      tone({ type: 'sawtooth', freq: superBeam ? 260 : 390, slide: 160, dur: 0.24,
+        vol: superBeam ? 0.065 : 0.055, cutoff: 1700 });
+    },
     enemyDie()        { noise({ dur: 0.12, vol: 0.12, freq: 1800 }); },
     explosion()       { noise({ dur: 0.35, vol: 0.3, freq: 900, q: 0.7 }); tone({ type: 'sine', freq: 110, slide: 40, dur: 0.3, vol: 0.25 }); },
     playerHurt()      { tone({ type: 'sawtooth', freq: 200, slide: 80, dur: 0.2, vol: 0.25 }); noise({ dur: 0.15, vol: 0.15, freq: 600 }); },

@@ -1,6 +1,6 @@
 # 服务器发布与更新流程
 
-当前游戏是纯静态网页：战斗、画面、音频和成长都在玩家浏览器运行。第一阶段把成品放到服务器，让朋友通过链接试玩即可；账号、数据库和云存档可在玩法稳定后接入。下面是准备好的操作流程，本轮没有对任何服务器执行发布。
+当前游戏是纯静态网页：战斗、画面、音频和成长都在玩家浏览器运行。第一阶段把成品放到服务器，让朋友通过链接试玩即可；账号、数据库和云存档可在玩法稳定后接入。现有正式站点为 https://starfalling.site/，通过 SSH 别名 jdcloud 管理。Caddy 的静态挂载目录为 /home/lingling/work/my_game/starfall/site，线上同时保留 index.html 与 starfall.html 两个相同入口。每次更新先在 releases/ 保存新产物、在 backups/ 保存旧页面，核对 SHA-256 后用同目录临时文件原子替换；静态更新不需要重建 API 容器。以下首次建站配置仍作为参考，现有站点应沿用现有域名、证书与挂载。
 
 ## 1. 准备发布文件
 
@@ -12,20 +12,21 @@ node tools/verify_fixes.js
 node tools/character_test.js
 node tools/fire_overdrive_test.js
 node tools/local_v1_test.js
-node tools/shield_guard_test.js
+node tools/v2_test.js
 node tools/balance_audit.js
 node tools/smoke_test.js
 py tools/build.py
 node tools/visual_smoke.js
 node tools/character_visual_smoke.js
 node tools/frost_visual_smoke.js
+node tools/v2_visual_smoke.js
 node tools/audio_smoke.js
 Get-FileHash .\starfall.html -Algorithm SHA256
 ```
 
 构建需要 Python 3.10+，统一写出 LF 以便校验。Windows 可用 `py`；Linux/macOS 通常用 `python3`。浏览器检查需要开发环境的 Playwright 和 Chromium，安装方法见 README。只有修改舰体素材时才需要先运行 `py tools/prepare_assets.py`。
 
-发布物为 **starfall.html 一个文件**，包含全部脚本、16 张图片与作者署名。服务器不需要 Node.js、Python、npm 或游戏进程。不要把开发用 `index.html` 单独上传，它依赖源码和素材目录。
+发布物为 **starfall.html 一个文件**，包含全部脚本、15 张在用图片与作者署名。服务器不需要 Node.js、Python、npm 或游戏进程。不要把开发用 `index.html` 单独上传，它依赖源码和素材目录。
 
 本次修改保留 `vega / firefly / thunder / dawn` 等内部存档键。角色改名和换外形不会清空旧工坊、星尘或纪录。
 
@@ -98,7 +99,7 @@ location / {
 
 用另一台电脑或手机热点网络打开正式地址：
 
-1. 主菜单、四架机体都显示正常；点击后音乐能播放，M 静音有效。
+1. 主菜单、三架机体都显示正常；点击后音乐能播放，M 静音有效。
 2. 用霜翎触发一次防反，能听到首击冰裂；进入专精矩阵后战斗暂停，返回后继续。
 3. 完成一局或购买一次工坊强化，刷新后星尘、升级和纪录保留。
 4. HTTPS 正常，控制台没有脚本、素材或音频错误；页面请求不依赖第三方 CDN。
@@ -135,4 +136,4 @@ sudo mv -Tf /srv/starfall/current.next /srv/starfall/current
 
 舰体、空间站和行星来自 **MillionthVector — Free Sprites**，使用 **CC BY 4.0**。四架机体额外做了配色、轮廓和装甲改装；具体来源与修改说明见 `assets/CREDITS.md` 和 `assets/source/manifest.json`。单文件中的署名、作者来源与授权信息应随发布保留。
 
-霜棱弹的两张新增贴图适配自 **Kenney Particle Pack（CC0）**，来源记录在 `assets/source/frost-manifest.json` 与 `assets/CREDITS.md`。当前单文件嵌入 16 张 WebP，发布前同时运行通用浏览器检查和 `node tools/frost_visual_smoke.js`。
+霜棱弹的两张新增贴图适配自 **Kenney Particle Pack（CC0）**，来源记录在 `assets/source/frost-manifest.json` 与 `assets/CREDITS.md`。当前单文件嵌入 15 张 WebP，发布前同时运行通用浏览器检查和 `node tools/frost_visual_smoke.js`。

@@ -7,8 +7,8 @@
   const DENSITY = 4;
   const pal = () => SF.palette;
   const ICONS = {
-    weapon: { satellite: 'satellite', galaxy: 'satellite', shieldDisc: 'satellite', mirrorWheel: 'frostShard', laser: 'icon_laser', spectrum: 'icon_laser', chain: 'icon_railgun', tempest: 'icon_railgun' },
-    passive: { engine: 'icon_engine', cryo: 'icon_cryo', crit: 'icon_crit', cooldown: 'icon_chip', armor: 'icon_armor' },
+    weapon: { mirrorWheel: 'frostShard', frostLance: 'frostLance', laser: 'icon_laser', spectrum: 'icon_laser', chain: 'icon_railgun', tempest: 'icon_railgun' },
+    passive: { engine: 'element_fire', cryo: 'icon_cryo', frostLens: 'icon_frostLens', crit: 'icon_crit', cooldown: 'icon_chip', armor: 'icon_laser' },
   };
 
   function make(w, h, paint) {
@@ -68,11 +68,24 @@
       }
       disc(ctx,0,0,1.2,'ice2');
     });
-    S.satellite = make(12,10,ctx => {
-      metal(ctx,[[-2,-2],[-5,-3],[-5,2],[-2,1]],'metalLight','metalDark','hero2');
-      metal(ctx,[[2,-2],[5,-3],[5,2],[2,1]],'metalLight','metalDark','hero2');
-      polygon(ctx,[[0,-3],[-2,0],[0,3],[2,0]],'metalLight','hero1');
-      disc(ctx,0,0,0.9,'hero0');
+    S.element_ice = S.orb;
+    S.element_fire = make(14,14,ctx => {
+      ctx.fillStyle=pal().css('fire1');ctx.beginPath();ctx.moveTo(1,-6);
+      ctx.bezierCurveTo(-6,-1,-5,5,0,6);ctx.bezierCurveTo(6,6,6,0,3,-2);
+      ctx.quadraticCurveTo(3,1,1,1);ctx.quadraticCurveTo(-1,-1,1,-6);ctx.fill();
+      polygon(ctx,[[0,1],[-1.5,4],[0,5],[2,4]],'fire2');
+    });
+    S.element_bolt = make(14,14,ctx => polygon(ctx,[[1,-6],[-5,1],[-1,1],[-2,6],[5,-2],[1,-2]],'bolt1'));
+    S.element_none = make(14,14,ctx => {
+      ctx.strokeStyle=pal().css('silver');ctx.lineWidth=1.1;ctx.strokeRect(-4,-4,8,8);
+      line(ctx,[[-2,0],[2,0]],'white',1);line(ctx,[[0,-2],[0,2]],'white',1);
+    });
+    S.evolution_material = make(14,14,ctx => {
+      // 芯片底座 + 向上进化箭头；和元素图标分开表达“材料”身份。
+      polygon(ctx,[[-5,0],[-2,-2],[2,-2],[5,0],[5,5],[-5,5]],'metalDark','gold',0.9);
+      line(ctx,[[0,3],[0,-5]],'starDust',1.3);
+      line(ctx,[[-2.5,-2.5],[0,-5],[2.5,-2.5]],'white',1.1);
+      line(ctx,[[-3,3],[-2,3]],'gold',0.8);line(ctx,[[2,3],[3,3]],'gold',0.8);
     });
     S.boltPlayer = make(6,6,ctx => disc(ctx,0,0,2,'bolt2'));
     S.spark = make(3,3,ctx => disc(ctx,0,0,1,'bolt2'));
@@ -110,6 +123,19 @@
       polygon(ctx, [[0,-7],[0,5],[3,-1]], 'ice1');
       line(ctx, [[0,-6],[0,4]], 'white', 0.6);
       line(ctx, [[-2,-1],[2,-1]], 'ice2', 0.5);
+    });
+    S.frostLance = make(16,34,ctx => {
+      polygon(ctx,[[0,-16],[-4,-3],[-3,9],[0,14],[3,9],[4,-3]],'ice0','ice2',0.7);
+      polygon(ctx,[[0,-16],[0,12],[3,7],[4,-3]],'ice1');
+      polygon(ctx,[[-3,-1],[-6,5],[-3,10],[0,5]],'ice0','ice2',0.5);
+      polygon(ctx,[[3,-1],[6,5],[3,10],[0,5]],'ice1','ice2',0.5);
+      line(ctx,[[0,-13],[0,11]],'white',0.8);
+    });
+    S.icon_frostLens = make(14,14,ctx => {
+      polygon(ctx,[[0,-6],[-5,-2],[-4,4],[0,6],[4,4],[5,-2]],'ice0','ice2',0.8);
+      polygon(ctx,[[0,-4],[-2,0],[0,4],[2,0]],'ice2','white',0.5);
+      line(ctx,[[-5,-2],[-2,0],[-4,4]],'ice1',0.6);
+      line(ctx,[[5,-2],[2,0],[4,4]],'ice1',0.6);
     });
     S.icon_cryo = make(14,14,ctx => {
       polygon(ctx,[[0,-6],[-2,-2],[-5,-1],[-2,1],[-3,5],[0,2],[3,5],[2,1],[5,-1],[2,-2]],'ice0','ice2',0.8);

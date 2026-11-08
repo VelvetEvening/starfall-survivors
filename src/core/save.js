@@ -12,19 +12,19 @@
   // 默认存档结构
   function defaultProfile() {
     return {
+      schemaVersion: 2,
       bestScore: 0,           // 兼容字段（迁移到 bestScores.normal）
       bestScores: { easy: 0, normal: 0, hard: 0 },  // 按难度分桶的最高分
       bestTime: 0,
       totalRuns: 0,
       bossKills: 0,
       currency: 0,          // 星尘货币（每局结算转化）
-      unlockedChars: ['vega', 'firefly', 'dawn', 'thunder'],
+      unlockedChars: ['vega', 'firefly', 'thunder'],
       stats: { kills: 0, damage: 0 },
       // 局外工坊：三项属性各 5 级；weapon 购买 5 次入场 Lv.6。
       charUpgrades: {
         vega: { hp: 0, speed: 0, dmg: 0, weapon: 0 },
         firefly: { hp: 0, speed: 0, dmg: 0, weapon: 0 },
-        dawn: { hp: 0, speed: 0, dmg: 0, weapon: 0 },
         thunder: { hp: 0, speed: 0, dmg: 0, weapon: 0 },
       },
     };
@@ -42,6 +42,19 @@
     for (const cid of Object.keys(du)) {
       d.charUpgrades[cid] = Object.assign({}, du[cid], d.charUpgrades[cid] || {});
     }
+    if ((data?.schemaVersion || 1) < 2) {
+      const retired = d.charUpgrades.dawn || {};
+      let refund = 0;
+      for (const key of ['hp', 'speed', 'dmg', 'weapon']) {
+        const level = Math.max(0, Math.min(5, Math.floor(Number(retired[key]) || 0)));
+        refund += SF.config.UPGRADE_COSTS.slice(0, level).reduce((sum, cost) => sum + cost, 0);
+      }
+      d.currency += refund;
+      d.retiredDawnRefund = refund;
+    }
+    d.schemaVersion = 2;
+    d.unlockedChars = ['vega', 'firefly', 'thunder'];
+    // 历史 dawn 加点保留作迁移凭据，不再进入角色或购买入口。
     return d;
   }
 
@@ -117,6 +130,7 @@
     // ---- 局外工坊：购买装甲升级（原子校验扣费，防连点） ----
     async buyCharUpgrade(charId, statKey) {
       return this.update(p => {
+        if (!SF.characters[charId]) return false;
         const cu = p.charUpgrades && p.charUpgrades[charId];
         if (!cu || cu[statKey] === undefined) return false;
         const level = cu[statKey];

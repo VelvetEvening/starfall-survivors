@@ -70,7 +70,7 @@ for (const id in SF.weapons) {
   check(`${def.name} 逐级 DPS 单调不减`, mono, `满级 DPS ${prev.dps.toFixed(1)}`);
 }
 // 进化起点：进化后基础 DPS ≥ 进化前满级 DPS
-const evoPairs = [['blade', 'prism'], ['orb', 'absoluteZero'], ['chain', 'tempest'], ['satellite', 'galaxy'], ['missile', 'nuke'], ['laser', 'spectrum']];
+const evoPairs = Object.values(SF.weapons).filter(w => w.evolveTo).map(w => [w.id, w.evolveTo]);
 for (const [from, to] of evoPairs) {
   const pre = weaponDps(SF.weapons[from], 1 + SF.weapons[from].levels.length);
   const post = weaponDps(SF.weapons[to], 1);
@@ -263,39 +263,20 @@ const bN = mkBullet(null), bE = mkBullet('elite'), bD = mkBullet('darkRed');
 check('普通弹 r=2.5 / 精英 3.5 / 深暗红 4.2', bN.r === 2.5 && bE.r === 3.5 && bD.r === 4.2);
 check('命中半径随弹种变化（不再固定 6px）', bN.r + 3 < bD.r + 3);
 
-// ============ 11. 光谱裁决副光束真实伤害（不再纯视觉） ============
-console.log('\n[11] 光谱裁决副光束');
+// ============ 11. 光谱裁决单束伤害 ============
+console.log('\n[11] 光谱裁决单束');
 game.enemies.list.length = 0;
 pl.x = 0; pl.y = 0;            // 复位玩家（§7 BOSS 测试曾把玩家移到 (100,0)）
 pl.stats.critChance = 0;       // 关暴击保证断言确定
 pl.weapons = [];
 pl.addWeapon('spectrum');
 const sw = pl.weapons[0];
-sw.laserAngle = 0; // 主束朝 +x，副束朝 -x
-const behind = game.enemies.spawnAt('grub', -30, 0, 5, 0); // hpScale 5 防击杀
-const front = game.enemies.spawnAt('grub', 40, 0, 5, 0);
-const bHp0 = behind.hp, fHp0 = front.hp;
-pl.update(1 / 60, game); // tick 1：主束命中正前方敌人，副光束命中身后敌人
-check('反向副光束对身后敌人半伤（16×0.5=8）', Math.abs((bHp0 - behind.hp) - 8) < 1e-6, `扣血 ${bHp0 - behind.hp}`);
-check('主束同帧命中正前方敌人（全伤 16）', Math.abs((fHp0 - front.hp) - 16) < 1e-6, `扣血 ${fHp0 - front.hp}`);
-sw.laserTick = 0;
-pl.update(1 / 60, game); // tick 2：主束/副束各自二次结算
-check('主束二次结算（累计 32）', Math.abs((fHp0 - front.hp) - 32) < 1e-6, `累计 ${fHp0 - front.hp}`);
-check('副光束二次结算（累计 16）', Math.abs((bHp0 - behind.hp) - 16) < 1e-6, `累计 ${bHp0 - behind.hp}`);
-
-// ============ 12. 铁壁护盾 nerf：10s +5 / 上限 10 ============
-console.log('\n[12] 护盾回复');
-const gd = new SF.Game();
-gd.reset('dawn', 'normal');
-gd.player.shieldTimer = 9.99;
-gd.player.update(0.02, gd);
-check('铁壁护盾单次回复 5（原 8）', gd.player.shield === 5, `shield=${gd.player.shield}`);
-gd.player.shieldTimer = 9.99;
-gd.player.update(0.02, gd);
-check('护盾叠到上限 10（原 20）', gd.player.shield === 10, `shield=${gd.player.shield}`);
-gd.player.shieldTimer = 9.99;
-gd.player.update(0.02, gd);
-check('护盾不再超过上限 10', gd.player.shield === 10, `shield=${gd.player.shield}`);
+const behind = game.enemies.spawnAt('grub', -30, 0, 100, 0);
+const front = game.enemies.spawnAt('grub', 40, 0, 100, 0);
+const fHp0 = front.hp;
+sw.beamDamage(game, pl, sw.spec, 1, 0, 100);
+check('原主副束火力合并为单次 24 伤害', Math.abs(fHp0 - front.hp - 24) < 1e-6);
+check('同向光束不伤及身后敌人', behind.hp === behind.maxHp);
 
 // ============ 13. 天罚光束 + 星穹新节点 ============
 console.log('\n[13] 天罚贯穿光束');
@@ -367,20 +348,19 @@ const bossF = game.enemies.spawnBoss(game, 'boss');
 bossF.takeDamage(1, gf, 'ice0');
 check('BOSS 可被叠加冰蚀（霜翎被动对 BOSS 有效）', bossF.iceStacks === 1);
 
-// ============ 16. 霜翎周期无敌 / 受击反制冰域 ============
-console.log('\n[16] 霜翎周期无敌与反制冰域');
+// ============ 16. 霜翎主动防反 / 受击反制冰域 ============
+console.log('\n[16] 霜翎主动防反与反制冰域');
 const gi = new SF.Game(); gi.reset('firefly', 'normal'); gi.state = 'playing';
 gi.player.hp = gi.player.stats.maxHp;
-gi.player.cycleInvulnCd = 0.01;
-gi.player.update(STEP, gi);
-check('周期无敌基础时长属性化为 0.5 秒', gi.player.stats.phaseInvulnDuration === 0.5);
-check('周期无敌触发后仍有有效时长', gi.player.phaseInvulnT > 0.45);
+gi.player.activateFrostCounter();
+check('主动防反窗口固定 0.2 秒', gi.player.stats.phaseInvulnDuration === 0.2);
+check('主动防反触发后仍有有效时长', gi.player.phaseInvulnT === 0.2);
 const hpPhase = gi.player.hp;
 gi.player.speedBoostT = 0;
 const phaseAttacker = gi.enemies.spawnAt('grub', 12, 0, 5, 0);
 gi.player.takeDamage(50, { type: 'contact', owner: 'mob', attacker: phaseAttacker, x: phaseAttacker.x, y: phaseAttacker.y, game: gi });
-check('周期无敌可受击但 0 伤', gi.player.hp === hpPhase);
-check('周期防反命中触发冰域但不给普通受击后效', gi.player.speedBoostT === 0
+check('主动防反可受击但 0 伤', gi.player.hp === hpPhase);
+check('主动防反命中触发冰域但不给普通受击后效', gi.player.speedBoostT === 0
   && SF.projectiles.iceFields.length === 1
   && SF.projectiles.iceFields[0].primaryUid === phaseAttacker.uid);
 gi.player.takeDamage(50, { type: 'contact', owner: 'mob', attacker: phaseAttacker, x: phaseAttacker.x, y: phaseAttacker.y, game: gi });
@@ -422,23 +402,11 @@ p3.addWeapon('absoluteZero'); p3.recalcStats();
  check('持有绝对零度后寒潮核心追溯 ×1.5：2 层 = 冰系范围 +12%、冰伤 +6%', Math.abs(p3.stats.iceAreaMul - 0.12) < 1e-6 && Math.abs(p3.stats.iceDmg - 0.06) < 1e-6, `iceAreaMul=${p3.stats.iceAreaMul} iceDmg=${p3.stats.iceDmg}`);
 const p4 = new SF.Player('vega');
 p4.addPassive('armor'); p4.addWeapon('spectrum'); p4.recalcStats();
-check("复合装甲持光谱后 +1.5/层（不取整丢失）", p4.stats.armor === 1.5, `armor=${p4.stats.armor}`);
+check('聚束晶体持光谱后雷伤 +4.5%、范围 +6%', Math.abs(p4.stats.boltDmg - 0.045) < 1e-9 && Math.abs(p4.stats.boltAreaMul - 0.06) < 1e-9);
 const p5 = new SF.Player('vega');
 p5.addPassive('cooldown'); p5.passives.get('cooldown').level = 2; p5.recalcStats();
 check('超频芯片改蓄力缩减：2 层 chargeRed = 6%', Math.abs(p5.stats.chargeRed - 0.06) < 1e-6);
 check('超频芯片不再减冷却（cooldownMul 保持 1）', p5.stats.cooldownMul === 1);
-
-// ============ 19b. 拾取范围 / 特殊道具掉率减半 ============
-console.log('\n[19b] 拾取范围与特殊道具掉率');
-const gpick = new SF.Player('firefly');
-gpick.addPassive('magnet'); gpick.passives.get('magnet').level = 2;
-gpick.litStars.add('cassia_root'); gpick.litStars.add('cassia_b'); gpick.litStars.add('cassia_d');
-gpick.recalcStats();
-check('磁力核心每层拾取范围 +4.5', Math.abs(SF.passives.magnet.per.pickupRadius - 4.5) < 1e-9);
-check('壁垒路线不再提供拾取范围', gpick.stats.pickupRadius === SF.config.PICKUP_RADIUS_BASE + 9);
-check('霜翎幸运加成 +2.5%', Math.abs(SF.characters.firefly.traits.luck - 1.025) < 1e-9);
-check('壁垒路线不再提供幸运收益', !gpick.stats.luck);
-check('壁垒路线不再提供磁力道具掉率', gpick.stats.magnetChance === 0);
 
 // ============ 19. 雷系共鸣 +10% ============
 console.log('\n[19] 雷系共鸣');
@@ -600,7 +568,7 @@ burnGuard.applyBurn(4, 8, { iceGuard: true });
 const bgHp = burnGuard.hp;
 burnGuard.takeDamage(10, gm, 'ice0');
 burnGuard.applySlow(0.65, 0.8);
-check('导弹灼烧使冰伤减半并免疫冰控', Math.abs((bgHp - burnGuard.hp) - 5) < 1e-6 && burnGuard.freezeT === 0 && burnGuard.slowT === 0);
+check('灼烧不再减免冰伤或屏蔽冰控', Math.abs((bgHp - burnGuard.hp) - 10) < 1e-6 && burnGuard.freezeT > 0 && burnGuard.slowT > 0);
 
 const gr = new SF.Game(); gr.reset('firefly', 'normal'); gr.state = 'playing';
 gr.player.phaseInvulnT = 0; gr.player.invulnT = 0; gr.player.iceRetaliationUsed = false;
@@ -616,45 +584,19 @@ check('反制冰域中心目标首击双倍', Math.abs((attackerHp - attacker.hp
 
 // ============ 23. 机体专精与防反反馈 ============
 console.log('\n[23] 机体专精矩阵与防反反馈');
-check('四机体内部 ID 保留，名称与专精对应',
+check('三机体内部 ID 保留，名称与专精对应',
   SF.characters.vega.name === '焰锋' && SF.characters.firefly.name === '霜翎'
-  && SF.characters.thunder.name === '磁暴' && SF.characters.dawn.name === '铁壁');
+  && SF.characters.thunder.name === '磁暴' && !SF.characters.dawn);
 for (const con of Object.keys(SF.constellationMeta)) {
   const nodes = Object.values(SF.constellations).filter(n => n.con === con);
-  check(`${SF.constellationMeta[con].name}：6 节点 / 本系总价 20`, nodes.length === 6 && nodes.reduce((sum, n) => sum + n.cost, 0) === 20);
+  check(`${SF.constellationMeta[con].name}：8 节点 / 本系总价 30`, nodes.length === 8 && nodes.reduce((sum, n) => sum + n.cost, 0) === 30);
 }
 const frost = new SF.Player('firefly');
 frost.litStars.add('cygnus_root'); frost.recalcStats();
-check('霜返首节点实际延长至 0.6 秒', Math.abs(frost.stats.phaseInvulnDuration - 0.6) < 1e-9);
+check('霜返首节点增加冰系范围', Math.abs(frost.stats.iceAreaMul - 0.05) < 1e-9);
 frost.litStars.add('cygnus_c'); frost.recalcStats();
-check('两枚防反节点实际叠至 0.8 秒', Math.abs(frost.stats.phaseInvulnDuration - 0.8) < 1e-9);
-const oldBonus = SF.constellations.cygnus_c.fx.phaseInvulnBonus;
-SF.constellations.cygnus_c.fx.phaseInvulnBonus = 3; frost.recalcStats();
-check('防反派生属性仍受 1 秒硬上限约束', frost.stats.phaseInvulnDuration === 1);
-SF.constellations.cygnus_c.fx.phaseInvulnBonus = oldBonus;
-
-const tankGame = new SF.Game(); tankGame.reset('dawn', 'normal'); tankGame.state = 'playing';
-const tank = tankGame.player;
-for (const [id, node] of Object.entries(SF.constellations)) if (node.con === 'cassia') tank.litStars.add(id);
-tank.recalcStats();
-check('壁垒生命 +8%、固定减伤累计 +1.5', Math.abs(tank.stats.maxHp - 112 * 1.08) < 1e-9 && tank.stats.armor === 3.5);
-tank.shield = 0; tank.shieldTimer = SF.config.SHIELD_REGEN_INTERVAL - STEP; tank.update(STEP, tankGame);
-check('铁壁全系回充 = 5 + 2 + 1 = 8，未超过护盾上限', tank.shield === 8);
-tank.shieldTimer = SF.config.SHIELD_REGEN_INTERVAL - STEP; tank.update(STEP, tankGame);
-check('全系回充仍封顶 10', tank.shield === 10);
-tank.hp = tank.stats.maxHp; tank.invulnT = 0;
-const guarded = tank.takeDamage(20, { game: tankGame });
-check('卫星破盾保护免去溢出伤害并进入无敌', guarded === 0 && tank.shield === 0 && tank.invulnT > 0);
-tank.invulnT = 0;
-check('破盾后不保留额外减伤', Math.abs(tank.takeDamage(20, { game: tankGame }) - 16.5) < 1e-9);
-tank.hp = tank.stats.maxHp * 0.6; tank.regenPool = 0; tank.update(1.25, tankGame);
-check('应急修复不在半血以上生效', Math.abs(tank.hp - tank.stats.maxHp * 0.6) < 1e-9 && tank.regenPool === 0);
-tank.hp = tank.stats.maxHp * 0.4; const repairHp = tank.hp; tank.update(1.25, tankGame);
-check('应急修复在低血时按 0.8/秒生效', Math.abs(tank.hp - repairHp - 1) < 1e-9);
-const otherGame = new SF.Game(); otherGame.reset('vega', 'normal');
-otherGame.player.litStars.add('cassia_root'); otherGame.player.litStars.add('cassia_b'); otherGame.player.recalcStats();
-otherGame.player.shieldTimer = SF.config.SHIELD_REGEN_INTERVAL - STEP; otherGame.player.update(STEP, otherGame);
-check('非重装机体也能获得矩阵回充，异系收费翻倍', otherGame.player.shield === 2 && otherGame.player.starCost('cassia_b') === 4);
+check('反制节点增加伤害但不延长窗口', frost.stats.counterDamage === 0.15 && frost.stats.phaseInvulnDuration === 0.2);
+check('铁壁装备与星图已移除', !SF.weapons.satellite && !SF.weapons.galaxy && !SF.weapons.shieldDisc && !SF.passives.magnet && !SF.constellationMeta.cassia);
 
 let iceSounds = 0;
 const oldSfx = SF.audio.sfx;
@@ -754,87 +696,11 @@ for (let lv = 1; lv <= 6; lv++) {
   const guarded = g.enemies.spawnAt('grub', 30, 0, 100, 0);
   guarded.applyBurn(1, 8, { iceGuard: true });
   frostShot(g); SF.projectiles.update(0.2, g);
-  check('新冰弹仍遵守抗冰灼烧减伤和免冰控', guarded.maxHp - guarded.hp === 4.5 && guarded.freezeT === 0 && guarded.slowT === 0);
+  check('新冰弹可与灼烧共存', guarded.maxHp - guarded.hp === 9 && guarded.freezeT > 0 && guarded.slowT > 0);
   SF.projectiles.clear();
   check('新局清除冰弹和碎裂表现', SF.projectiles.frostBursts.length === 0 && SF.projectiles.list.length === 0);
 }
 
-console.log('\n[25] 盾击与承伤震荡：清理前后行为保持一致');
-function shieldFixture(level = 1, character = 'vega') {
-  const g = new SF.Game(); g.reset(character, 'normal'); g.state = 'playing';
-  g.player.stats.critChance = 0;
-  g.player.weapons = [new SF.WeaponInstance(SF.weapons.shieldDisc, level)];
-  return g;
-}
-const shieldDamage = [38, 48, 48, 64, 84, 112];
-const shieldPush = [0, 0, 0, 42, 60, 60];
-for (let lv = 1; lv <= 6; lv++) {
-  const g = shieldFixture(lv), w = g.player.weapons[0];
-  const e = g.enemies.spawnAt('grub', 30, 0, 100, 0);
-  w.cdTimer = 0; w.update(STEP, g);
-  check(`盾盘 Lv.${lv} 保持原单次伤害与击退`,
-    Math.abs(e.maxHp - e.hp - shieldDamage[lv - 1]) < 1e-9 &&
-    Math.abs(e.x - 30 - shieldPush[lv - 1] * 0.08) < 1e-9);
-}
-{
-  const g = shieldFixture(), w = g.player.weapons[0];
-  const far = g.enemies.spawnAt('grub', -60, 0, 100, 0);
-  const near = g.enemies.spawnAt('grub', 30, 0, 100, 0);
-  const sameCone = g.enemies.spawnAt('grub', 50, 0, 100, 0);
-  const outsideCone = g.enemies.spawnAt('grub', 30, 20, 100, 0);
-  const outsideRange = g.enemies.spawnAt('grub', 90, 0, 100, 0);
-  const dead = g.enemies.spawnAt('grub', -1, 0, 100, 0); dead.dead = true;
-  w.fire(g);
-  check('盾盘忽略死敌并朝最近活敌瞄准，每个扇形内目标只命中一次',
-    near.maxHp - near.hp === 38 && sameCone.maxHp - sameCone.hp === 38 &&
-    [far, outsideCone, outsideRange, dead].every(e => e.hp === e.maxHp));
-  g.player.stats.cooldownMul = 0.8;
-  w.cdTimer = 0; w.update(STEP, g);
-  const hp = near.hp;
-  w.update(0.2, g);
-  check('盾盘共用冷却期间不会重复结算', near.hp === hp && Math.abs(w.cdTimer - 1.72) < 1e-9);
-  w.update(w.cdTimer + STEP, g);
-  check('盾盘按原 2.4 秒冷却与玩家缩减恢复攻击', near.hp === hp - 38 && Math.abs(w.cdTimer - 1.92) < 1e-9);
-}
-{
-  const g = shieldFixture(), pl = g.player, w = pl.weapons[0];
-  pl.stats.armor = 5; pl.shield = 10;
-  pl.takeDamage(4, { game: g });
-  check('护甲抵消全部伤害时不准备强化盾击', !pl.shieldDiscEmpowered && pl.shield === 10);
-  pl.stats.armor = 0;
-  pl.takeDamage(2, { game: g }); pl.takeDamage(2, { game: g });
-  pl.weaponLockT = 1; w.cdTimer = 0.5;
-  w.update(0.25, g);
-  check('武器停滞保留盾击冷却与已准备的强化', w.cdTimer === 0.5 && pl.shieldDiscEmpowered);
-  pl.weaponLockT = 0; w.update(0.6, g);
-  check('无目标时盾盘保留强化并短暂等待', pl.shieldDiscEmpowered && w.cdTimer === 0.12);
-  const e = g.enemies.spawnAt('grub', 30, 0, 100, 0);
-  w.update(0.13, g);
-  check('多次盾伤只强化一次，伤害仍为 1.5 倍', e.maxHp - e.hp === 57 && !pl.shieldDiscEmpowered);
-  w.fire(g);
-  check('下一次盾击恢复普通伤害', e.maxHp - e.hp === 95);
-  check('普通机体盾伤不会积累铁壁冲击值', pl.armorShockCharge === 0);
-}
-{
-  const g = shieldFixture(1, 'dawn'), pl = g.player;
-  const e = g.enemies.spawnAt('grub', 30, 0, 100, 0);
-  const far = g.enemies.spawnAt('grub', 100, 0, 100, 0);
-  pl.takeDamage(12, { game: g });
-  check('铁壁现有冲击值只由护盾实吸伤害积累', pl.armorShockCharge === 0);
-  pl.invulnT = 0; pl.shield = 10; pl.takeDamage(12, { game: g });
-  check('铁壁护盾吸收 10 点时尚未触发震荡', pl.armorShockCharge === 10 && e.hp === e.maxHp);
-  pl.shield = 10; pl.takeDamage(4, { game: g });
-  check('铁壁累计吸收 12 点后按原范围、伤害与击退释放',
-    pl.armorShockCharge === 0 && pl.armorShockCd === 1.2 &&
-    Math.abs(e.maxHp - e.hp - 28 * 1.2) < 1e-9 &&
-    Math.abs(e.x - 30 - 72 * 0.08) < 1e-9 && far.hp === far.maxHp);
-  pl.shield = 10; pl.takeDamage(12, { game: g });
-  pl.shield = 10; pl.takeDamage(4, { game: g });
-  check('震荡冷却内不会重复释放', pl.armorShockCharge === 12 && Math.abs(e.maxHp - e.hp - 28 * 1.2) < 1e-9);
-  g.reset('dawn', 'normal');
-  check('重开清除盾击强化与铁壁冲击值、冷却',
-    !g.player.shieldDiscEmpowered && g.player.armorShockCharge === 0 && g.player.armorShockCd === 0);
-}
 {
   const g = new SF.Game(); g.reset('thunder', 'normal');
   const pl = g.player, w = pl.weapons[0];

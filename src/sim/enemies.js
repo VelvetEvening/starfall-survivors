@@ -26,7 +26,6 @@
       this.burns = []; // 焰锋常态/超载均独立叠层；其它机体至多一条可刷新灼烧
       this.burnIndicatorLayers = 0;
       this.burnT = 0; this.burnDps = 0; this.burnTick = 0; this.burnDamagePool = 0;
-      this.burnIceGuardT = 0;
       this.slowT = 0; this.slowFactor = 1; this.freezeT = 0;
       this.vulnT = 0;                          // 冰冻易伤：被冻后 5 秒受伤 ×1.2（BOSS 免疫）
       this.iceStacks = 0; this.iceStackT = 0;  // 霜翎冰蚀：每层 ×1.1 最多 3 层，5 秒无冰击清零（对 BOSS 有效）
@@ -46,10 +45,9 @@
       if (!meta.fixed) {
         if (this.vulnT > 0 && !this.def.boss) dmg *= SF.config.VULN_FREEZE_MUL;
         if (this.iceStacks > 0) dmg *= Math.pow(SF.config.ICE_STACK_MUL, this.iceStacks);
-        if (isIce && this.burnIceGuardT > 0) dmg *= SF.config.MISSILE_ICE_DAMAGE_MUL;
       }
       // 霜翎特质：冰系武器命中叠加冰蚀层
-      if (isIce && !this.burnIceGuardT) this.addIceStack(game);
+      if (isIce) this.addIceStack(game);
       this.hp -= dmg;
       this.hitFlash = 0.08;
       if (game) game.runStats.damage += dmg;
@@ -59,7 +57,7 @@
     }
 
     addIceStack(game) {
-      if (this.dead || this.burnIceGuardT > 0) return false;
+      if (this.dead) return false;
       if (!game || !game.player?.traits?.iceStack) return false;
       this.iceStacks = Math.min(SF.config.ICE_STACK_MAX, this.iceStacks + 1);
       this.iceStackT = SF.config.ICE_STACK_DURATION;
@@ -76,35 +74,28 @@
         if (targets.has(this.uid)) return;
         targets.add(this.uid);
       }
-      const guardT = Math.min(duration, options.iceGuardTime ?? (options.iceGuard ? duration : 0));
       const normal = !options.stack && this.burns.find(b => !b.stacked);
       if (normal) {
         normal.dps = Math.max(normal.dps, dps);
         normal.remaining = Math.max(normal.remaining, duration);
-        normal.guardT = Math.max(normal.guardT, guardT);
       } else {
-        this.burns.push({ dps, remaining: duration, guardT, stacked: !!options.stack, indicator: !!options.indicator });
+        this.burns.push({ dps, remaining: duration, stacked: !!options.stack, indicator: !!options.indicator });
       }
       this.refreshBurnState();
-      if (guardT > 0) {
-        this.slowT = 0; this.slowFactor = 1; this.freezeT = 0; this.vulnT = 0;
-        this.iceStacks = 0; this.iceStackT = 0;
-      }
+
     }
 
     refreshBurnState() {
-      this.burnT = 0; this.burnDps = 0; this.burnIceGuardT = 0;
+      this.burnT = 0; this.burnDps = 0;
       this.burnIndicatorLayers = 0;
       for (const b of this.burns) {
         this.burnT = Math.max(this.burnT, b.remaining);
         this.burnDps += b.dps;
-        this.burnIceGuardT = Math.max(this.burnIceGuardT, b.guardT);
         if (b.indicator) this.burnIndicatorLayers++;
       }
     }
 
     applySlow(factor, freeze) {
-      if (this.burnIceGuardT > 0) return;
       this.slowFactor = Math.min(this.slowFactor, factor);
       this.slowT = Math.max(this.slowT, 1.6);
       // Boss 的减速抗性由 boss.js 换算；实体本身不进入冻结状态。
@@ -158,7 +149,6 @@
           const b = this.burns[i];
           this.burnDamagePool += b.dps * Math.min(dt, b.remaining);
           b.remaining = Math.max(0, b.remaining - dt);
-          b.guardT = Math.max(0, b.guardT - dt);
           if (b.remaining === 0) this.burns.splice(i, 1);
         }
         this.refreshBurnState();
@@ -169,14 +159,14 @@
           this.burnDamagePool = 0;
           if (this.dead) return;
           SF.particles.trail(this.x + rand(-3, 3), this.y + rand(-3, 3), { color: 'fire1', life: 0.3, size: 1.5 });
-          // 蔓延只复制一层的剩余寿命，不能把总叠层伤害复制出去，也不重置寿命/抗冰时间。
+          // 蔓延只复制一层的剩余寿命，不能把总叠层伤害复制出去，也不重置寿命。
           if (game.player.stats.resonance.fire && this.burns.length > 0) {
             const layer = this.burns.reduce((best, b) => b.dps > best.dps ? b : best);
             const R2 = SF.config.BURN_SPREAD_RADIUS * SF.config.BURN_SPREAD_RADIUS;
             for (const o of game.enemies.list) {
               if (o.dead || o.burnT > 0) continue;
               if (dist2(this.x, this.y, o.x, o.y) < R2) {
-                o.applyBurn(layer.dps, layer.remaining, { stack: layer.stacked, indicator: layer.indicator, iceGuardTime: layer.guardT });
+                o.applyBurn(layer.dps, layer.remaining, { stack: layer.stacked, indicator: layer.indicator });
               }
             }
           }

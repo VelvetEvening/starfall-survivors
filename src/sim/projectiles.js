@@ -38,6 +38,8 @@
       vx: Math.cos(angle) * spec.speed, vy: Math.sin(angle) * spec.speed,
       angle, radius: spec.radius, dmg: spec.damage, blast: spec.blast, slow: spec.slow, freeze: spec.freeze,
       empowered: !!spec.empowered, hitSet: new Set(), blastHits: new Map(), life: spec.life, t: 0, trailT: 0,
+      lance: !!spec.frostPierce, piercing: !!spec.frostPierce || !!spec.empowered,
+      maxHits: spec.empowered ? SF.config.FIREFLY_FROST_MAX_HITS : (spec.frostMaxHits || 1),
     });
   }
 
@@ -55,7 +57,7 @@
     list.push({
       kind: 'missile', x, y, sx: x, sy: y, tx, ty,
       delay: spec.delay, blast: spec.blast, dmg: spec.damage,
-      burn: spec.burn || 0, burnDuration: spec.burnDuration || SF.config.FIRE_BASE_BURN_DURATION, burnIceGuard: !!spec.burnIceGuard,
+      burn: spec.burn || 0, burnDuration: spec.burnDuration || SF.config.FIRE_BASE_BURN_DURATION,
       burnStacking: !!spec.burnStacking,
       burnIndicator: !!spec.burnIndicator,
       fireField: spec.fireField || 0, life: spec.delay + 0.1, t: 0, trailT: 0,
@@ -150,7 +152,7 @@
         }
         if (p.t >= p.delay) {
           explode(p.x, p.y, p.blast, p.dmg, p.burn, game, 'fire1', p.burnDuration,
-            { iceGuard: p.burnIceGuard, stack: p.burnStacking, indicator: p.burnIndicator, attack: p.fireAttack }, { fireAttack: p.fireAttack });
+            { stack: p.burnStacking, indicator: p.burnIndicator, attack: p.fireAttack }, { fireAttack: p.fireAttack });
           if (p.fireField) addFireField(p.x, p.y, p.blast * 0.8, p.fireField);
           list.splice(i, 1);
         }
@@ -165,14 +167,14 @@
           SF.particles.trail(p.x + Math.cos(pa) * p.radius, p.y + Math.sin(pa) * p.radius,
             { color: p.empowered ? 'bolt2' : 'bolt0', life: p.empowered ? 0.38 : 0.3, size: p.empowered ? 4 : 3 });
         }
-        let hitAny = false;
+        let hitAny = false, feedback = 0;
         for (const { e } of contacts) {
           if (e.dead) continue;
           const dealt = damageEnemy(e, p.dmg, game, 'bolt0');
           p.hitSet.add(e.uid);
           hitAny = true;
           SF.particles.spark(e.x, e.y, rand(TAU), { color: 'bolt2', count: 4, speed: 90 });
-          SF.particles.floatText(e.x, e.y - 8, `${Math.round(dealt)}`, { color: SF.palette.css('bolt1'), size: p.empowered ? 10 : 8 });
+          if (feedback++ < 8) SF.particles.discharge(e.x, e.y, { radius: Math.min(16, e.radius + 6) });
         }
         // 命中反馈音：一帧多命中只播一次，避免穿透敌群时爆音
         if (hitAny) SF.audio.sfx.railHit();
@@ -291,7 +293,7 @@
       if (e.dead) continue;
       p.hitSet.add(e.uid);
       explodeIce(sx + dx * entry, sy + dy * entry, p, game);
-      if (!p.empowered) return true;
+      if (!p.piercing) return true;
     }
     p.x = sx + dx; p.y = sy + dy;
     p.trailT -= dt;
@@ -308,13 +310,13 @@
       if (e.dead || dist2(x, y, e.x, e.y) > (radius + e.radius) ** 2) continue;
       // 接触仍逐敌冰爆，但每个目标共享整发弹体的伤害预算，不能借密集小怪无限叠伤。
       const hits = p.blastHits.get(e.uid) || 0;
-      if (hits >= SF.config.FIREFLY_FROST_MAX_HITS) continue;
+      if (hits >= p.maxHits) continue;
       p.blastHits.set(e.uid, hits + 1);
       damageEnemy(e, p.dmg, game, 'ice0', { element: 'ice' });
       applySlow(e, p.slow, p.freeze);
     }
     if (frostBursts.length >= 80) frostBursts.shift();
-    frostBursts.push({ x, y, radius, t: 0, life: 0.28, angle: rand(TAU), empowered: p.empowered });
+    frostBursts.push({ x, y, radius, t: 0, life: 0.28, angle: rand(TAU), empowered: p.empowered, lance: p.lance });
     SF.particles.ring(x, y, { color: 'ice1', maxR: radius, life: 0.24, width: 1 });
     SF.particles.burst(x, y, { color: 'ice2', count: 5, speed: 65, life: 0.24, size: 1.2 });
   }
@@ -347,7 +349,6 @@
         SF.particles.spark(e.x, e.y, rand(TAU), { color: 'ice2', count: 5, speed: 65, life: 0.3, size: 1.7 });
         if (dealt > 0) {
           hit = true;
-          SF.particles.floatText(e.x, e.y - e.radius - 6, `${Math.round(dealt)}`, { color: SF.palette.css('ice1'), size: 7.5, life: 0.65 });
         }
       }
     }
@@ -401,8 +402,18 @@
       if (p.kind === 'blade') {
         R.drawSprite(SF.sprites.glow('blade', pal.css('fire1'), 4), p.x, p.y, { rot: p.rot });
       } else if (p.kind === 'frostShard') {
-        R.drawSprite(SF.sprites.glow('frostShard', pal.css(p.empowered ? 'ice2' : 'ice0'), p.empowered ? 3 : 1),
+        R.drawSprite(SF.sprites.glow(p.lance ? 'frostLance' : 'frostShard', pal.css(p.empowered ? 'ice2' : 'ice0'), p.empowered ? 3 : 1),
           p.x, p.y, { rot: p.angle + Math.PI / 2 });
+        if (p.lance) {
+          const s = R.toScreen(p.x, p.y);
+          ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(p.angle);
+          // 笔直的碎晶尾迹区别于电系跳动电弧；只作飞行方向提示。
+          for (let i=0;i<3;i++) {
+            ctx.strokeStyle=pal.css('ice1',0.5-i*0.12); ctx.lineWidth=1-i*0.2;
+            ctx.beginPath();ctx.moveTo(-13-i*10,-2+i*2);ctx.lineTo(-21-i*10,-2+i*2);ctx.stroke();
+          }
+          ctx.restore();
+        }
         if (p.empowered) {
           const s = R.toScreen(p.x, p.y);
           ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(p.angle);
@@ -427,34 +438,21 @@
       } else if (p.kind === 'missile') {
         R.drawSprite(SF.sprites.glow('missile', pal.css('fire1'), 3), p.x, p.y, {rot: Math.atan2(p.ty-p.y,p.tx-p.x)+Math.PI/2});
       } else if (p.kind === 'railgun') {
-        // 超电磁炮弹：蓝色巨型球（直径大于精英金弹）
-        const s = R.toScreen(p.x, p.y);
-        const r = p.radius;
-        R.glow(p.x, p.y, r * 3.4, 'bolt0', 0.65);
-        ctx.save();ctx.strokeStyle=pal.css('bolt0',0.2);ctx.lineWidth=r*0.65;
-        ctx.beginPath();ctx.moveTo(s.x,s.y);ctx.lineTo(s.x-Math.cos(p.angle)*r*2.8,s.y-Math.sin(p.angle)*r*2.8);ctx.stroke();ctx.restore();
-        R.fillCircle(p.x, p.y, r, pal.css('bolt0'), 0.45);
-        R.strokeCircle(p.x, p.y, r, pal.css('bolt1'), 0.9, 0.85);
-        R.fillCircle(p.x, p.y, r * 0.5, pal.css('bolt1'));
-        R.fillCircle(p.x, p.y, r * 0.24, pal.css('bolt2'));
-        // 前端电弧
-        ctx.strokeStyle = pal.css('bolt2', 0.7);
-        ctx.lineWidth = 1;
-        ctx.beginPath();
-        ctx.arc(s.x, s.y, r + 2, p.angle - 0.6, p.angle + 0.6);
-        ctx.stroke();
-        if (p.empowered) {
-          ctx.save(); ctx.translate(s.x, s.y); ctx.rotate(p.angle);
-          ctx.fillStyle = pal.css('white', 0.9);
-          ctx.beginPath(); ctx.moveTo(r * 1.45, 0); ctx.lineTo(0, -r * 0.35);
-          ctx.lineTo(-r * 1.65, 0); ctx.lineTo(0, r * 0.35); ctx.closePath(); ctx.fill();
-          ctx.strokeStyle = pal.css('bolt2', 0.8); ctx.lineWidth = 1.2;
-          for (const side of [-1, 1]) {
-            ctx.beginPath(); ctx.moveTo(-r * 3.2, side * r * 0.8);
-            ctx.lineTo(-r * 0.8, side * r * 0.8); ctx.stroke();
-          }
-          ctx.restore();
+        const s = R.toScreen(p.x, p.y), r = p.radius;
+        R.glow(p.x,p.y,r*2.6,'bolt0',0.42);
+        ctx.save();ctx.translate(s.x,s.y);ctx.rotate(p.angle);
+        // 电浆弹芯保持在碰撞圆内；后方断续电弧仅是消散尾迹。
+        ctx.fillStyle=pal.css('bolt0',0.3);ctx.beginPath();ctx.ellipse(0,0,r,r*0.82,0,0,TAU);ctx.fill();
+        ctx.fillStyle=pal.css('bolt2',0.9);
+        ctx.beginPath();ctx.moveTo(r,0);ctx.lineTo(-r*0.55,-r*0.3);
+        ctx.lineTo(-r*0.25,0);ctx.lineTo(-r*0.55,r*0.3);ctx.closePath();ctx.fill();
+        for(const side of [-1,1]) {
+          R.electricArc(ctx,-r*0.65,side*r*0.65,r,0,
+            {time:p.t,amplitude:r*0.2,width:p.empowered?1.2:0.9,seed:side+5});
+          R.electricArc(ctx,-r*3,side*r*0.3,-r*0.35,side*r*0.2,
+            {time:p.t,amplitude:r*0.25,width:0.7,alpha:0.6,seed:side+13});
         }
+        ctx.restore();
       }
     }
 
@@ -464,6 +462,16 @@
       R.drawSprite(SF.sprites.get('frostBurst'), f.x, f.y, {
         scale: diameter / 32, rot: f.angle, alpha: (1 - k) * (f.empowered ? 0.8 : 0.6),
       });
+      if (f.lance) {
+        const s=R.toScreen(f.x,f.y), reach=f.radius*(R.reducedMotion?0.6:0.3+0.55*k);
+        ctx.save();ctx.translate(s.x,s.y);ctx.rotate(f.angle);
+        ctx.fillStyle=pal.css('ice2',(1-k)*0.65);
+        for(let i=0;i<3;i++) {
+          ctx.rotate(TAU/3);ctx.beginPath();ctx.moveTo(reach-7,-2);
+          ctx.lineTo(reach+3,0);ctx.lineTo(reach-7,2);ctx.lineTo(reach-4,0);ctx.closePath();ctx.fill();
+        }
+        ctx.restore();
+      }
     }
     // 火烧地带
     for (const f of fireFields) {
@@ -477,6 +485,23 @@
       R.fillCircle(f.x, f.y, f.radius, pal.css('ice0'), 0.06 * k);
       R.strokeCircle(f.x, f.y, f.radius, pal.css('ice2'), 1.5, 0.62 * k);
       R.strokeCircle(f.x, f.y, Math.max(1, f.radius - 4), pal.css('ice1'), 0.7, 0.38 * k);
+      // 冰域建立时的一次性裂纹和碎晶；纯表现，不追加命中或控制。
+      if (f.t < 0.55) {
+        const s = R.toScreen(f.x, f.y), t = f.t / 0.55;
+        const reach = f.radius * (R.reducedMotion ? 0.8 : 0.35 + 0.65 * (1 - (1 - t) ** 3));
+        ctx.save(); ctx.translate(s.x, s.y);
+        ctx.strokeStyle = pal.css('ice2', (1 - t) * 0.85); ctx.lineWidth = 1.1;
+        for (let i = 0; i < 6; i++) {
+          ctx.save(); ctx.rotate(i * TAU / 6);
+          ctx.beginPath(); ctx.moveTo(3, 0); ctx.lineTo(reach * 0.4, -2);
+          ctx.lineTo(reach * 0.68, 2); ctx.lineTo(reach, 0);
+          ctx.moveTo(reach * 0.4, -2); ctx.lineTo(reach * 0.56, -reach * 0.14); ctx.stroke();
+          ctx.fillStyle = pal.css('white', (1 - t) * 0.8);
+          ctx.beginPath(); ctx.moveTo(reach * 0.8, 0); ctx.lineTo(reach * 0.88, -2);
+          ctx.lineTo(reach, 0); ctx.lineTo(reach * 0.88, 2); ctx.closePath(); ctx.fill(); ctx.restore();
+        }
+        ctx.restore();
+      }
     }
   }
 

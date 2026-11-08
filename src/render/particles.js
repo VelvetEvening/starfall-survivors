@@ -84,6 +84,11 @@
     Object.assign(p, { type: 'flash', x, y, size, life, t: 0, color });
   }
 
+  // 单次命中的短电弧，不追踪或伤害附近敌人。
+  function discharge(x, y, { radius = 9, life = 0.18 } = {}) {
+    Object.assign(acquire(), { type: 'discharge', x, y, radius, life, t: 0 });
+  }
+
   // 星尘吸收轨迹（从拾取物飞向玩家）
   function suck(x, y, tx, ty, { color = 'starDust', life = 0.3 }) {
     const p = acquire();
@@ -166,6 +171,13 @@
         ctx.arc(s.x, s.y, Math.min(2,sz*0.3), 0, TAU);
         ctx.fill();
         ctx.globalAlpha = 1;
+      } else if (p.type === 'discharge') {
+        const s = R.toScreen(p.x, p.y);
+        for (let i = 0; i < 4; i++) {
+          const angle = i * TAU / 4 + 0.35;
+          R.electricArc(ctx, s.x, s.y, s.x + Math.cos(angle) * p.radius, s.y + Math.sin(angle) * p.radius,
+            { time: p.t, amplitude: 1.7, width: 0.8, alpha: k, seed: i + 3 });
+        }
       } else if (p.type === 'suck') {
         const t = p.t / p.life;
         const e = t * t; // 加速飞向目标
@@ -184,6 +196,6 @@
     while (active.length) pool.push(active.pop());
   }
 
-  SF.particles = { init, burst, spark, trail, floatText, ring, flash, suck, update, draw, clear,
+  SF.particles = { init, burst, spark, trail, floatText, ring, flash, discharge, suck, update, draw, clear,
     get count() { return active.length; } };
 })();

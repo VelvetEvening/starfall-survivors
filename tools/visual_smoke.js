@@ -11,7 +11,7 @@ const http = require('node:http');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(ROOT, 'gui-test-screenshots', 'feedback-upgrade');
+const OUT = path.join(ROOT, 'gui-test-screenshots', 'v2.0/general');
 const results = [], errors = [];
 fs.mkdirSync(OUT, { recursive: true });
 const server = http.createServer((req, res) => {
@@ -47,8 +47,8 @@ const record = (name, detail = true) => { results.push({ name, detail }); consol
     };
     await page.goto(url);
     await state('menu');
-    assert.equal(await page.evaluate(() => Object.keys(SF.assets.manifest).filter(id => SF.assets.get(id)?.complete).length), 16);
-    record('All 16 licensed images preload before play');
+    assert.equal(await page.evaluate(() => Object.keys(SF.assets.manifest).filter(id => SF.assets.get(id)?.complete).length), 15);
+    record('All 15 licensed images preload before play');
     await shot('01-menu');
     await clickAt(140, 194);
     await page.waitForFunction(() => SF.game.panel.showCredits);
@@ -67,7 +67,7 @@ const record = (name, detail = true) => { results.push({ name, detail }); consol
     await page.keyboard.press('KeyB');
     await page.waitForFunction(() => SF.game.panel.showPassive);
     assert.equal(await page.evaluate(() => SF.game.panel.showPassive), true);
-    for (let i = 0; i < 3; i++) {
+    for (let i = 0; i < 2; i++) {
       await page.keyboard.press('ArrowRight');
       await page.waitForFunction(index => SF.game.panel.sel === index, i + 1);
       if (i === 0) {
@@ -76,7 +76,7 @@ const record = (name, detail = true) => { results.push({ name, detail }); consol
         assert.ok(bounds.y >= 0 && bounds.y + bounds.h <= 270, 'Frost counter description must fit the viewport');
       }
     }
-    await page.waitForFunction(() => SF.game.panel.sel === 3);
+    await page.waitForFunction(() => SF.game.panel.sel === 2);
     await shot('03b-thunder-passive');
     await page.keyboard.press('ArrowRight');
     await page.waitForFunction(() => SF.game.panel.sel === 0);
@@ -194,24 +194,24 @@ const record = (name, detail = true) => { results.push({ name, detail }); consol
     assert.deepEqual(bossMusic, { tracks: [{ name: 'boss', final: false }, { name: 'boss', final: true }], firstPhase: 2, secondPhase: 1, track: 'boss' });
     record('Real Boss spawn and rage paths select and intensify the score', bossMusic);
 
-    await page.evaluate(() => { SF.game.startRun('dawn', 'normal'); SF.game.player.starPoints = 20; SF.game.openStarMap(); });
+    await page.evaluate(() => { SF.game.startRun('firefly', 'normal'); SF.game.player.starPoints = 30; SF.game.openStarMap(); });
     await state('starmap');
     const clickNode = async id => {
       const p = await page.evaluate(id => SF.game.panel.layout[id], id);
       await clickAt(p.x, p.y);
       await page.waitForFunction(id => SF.game.player.litStars.has(id), id);
     };
-    await clickNode('cassia_root');
+    await clickNode('cygnus_root');
     await page.keyboard.press('ArrowDown');
-    await page.waitForFunction(() => SF.game.panel.focus === 'cassia_a');
+    await page.waitForFunction(() => SF.game.panel.focus === 'cygnus_a');
     await page.keyboard.press('Enter');
-    await page.waitForFunction(() => SF.game.player.litStars.has('cassia_a'));
-    for (const id of ['cassia_b','cassia_c','cassia_d','cassia_e']) await clickNode(id);
+    await page.waitForFunction(() => SF.game.player.litStars.has('cygnus_a'));
+    for (const id of ['cygnus_f','cygnus_c','cygnus_g','cygnus_b','cygnus_d','cygnus_e']) await clickNode(id);
     assert.equal(await page.evaluate(() => SF.game.player.starPoints), 0);
-    assert.equal(await page.evaluate(() => SF.game.player.stats.armor), 3.5);
+    assert.equal(await page.evaluate(() => SF.game.player.stats.counterDamage), 0.15);
     assert.equal(await page.evaluate(() => SF.game.player.starCost('orion_root')), 4);
-    await shot('06b-bulwark-matrix');
-    record('All six heavy specialization nodes activate through keyboard and mouse at a total cost of 20');
+    await shot('06b-frost-matrix');
+    record('All eight frost specialization nodes activate through keyboard and mouse at a total cost of 30');
     await page.keyboard.press('Tab'); await state('playing');
 
     // Deterministic render fixtures use real entities and effects, with only the
@@ -226,10 +226,10 @@ const record = (name, detail = true) => { results.push({ name, detail }); consol
         g.runTime = kind === 'flight' ? 168 : kind === 'eye' ? 240 : 480;
         g.level = 18; g.xp = 80; g.xpNext = 130; g.score = 8456;
         g.runStats.kills = 417; g.player.starPoints = 7;
-        g.player.shield = 6; g.player.invulnT = 0;
+        g.player.invulnT = 0;
         g.player.weapons = [];
-        for (const id of ['chain','blade','orb','satellite']) g.player.addWeapon(id, 5);
-        g.player.addPassive('crit'); g.player.addPassive('magnet');
+        for (const id of ['chain','blade','orb','laser']) g.player.addWeapon(id, 5);
+        g.player.addPassive('crit'); g.player.addPassive('cryo');
         g.player.addPassive('cryo');
         const types = ['grub','crab','falcon','jelly','turret'];
         const count = kind === 'flight' ? 44 : 17;
@@ -274,7 +274,7 @@ const record = (name, detail = true) => { results.push({ name, detail }); consol
     await page.evaluate(() => {
       const g = SF.game; g.update = SF.Game.prototype.update; g.startRun('firefly', 'normal');
       g.time = 165; g.runTime = 165; g.level = 14; SF.audio.setMuted(true);
-      g.player.weapons[0].level = 5; g.player.stats.critChance = 0; g.player.phaseInvulnT = 0.5;
+      g.player.weapons[0].level = 5; g.player.stats.critChance = 0; g.player.phaseInvulnT = 0.2;
       const attacker = g.enemies.spawnAt('eliteGrub', 23, -14, 10, 0);
       g.enemies.spawnAt('crab', 47, 3, 20, 0); g.enemies.spawnAt('grub', 14, 14, 30, 0);
       g.player.takeDamage(26, { game: g, attacker, type: 'contact' });
@@ -440,7 +440,7 @@ const record = (name, detail = true) => { results.push({ name, detail }); consol
     await offline.goto(pathToFileURL(path.join(ROOT,'starfall.html')).href);
     await offline.waitForFunction(()=>window.SF?.game?.state==='menu');
     assert.deepEqual(remoteRequests,[]);
-    assert.equal(await offline.evaluate(()=>Object.keys(SF.assets.manifest).filter(id=>SF.assets.get(id)?.complete).length),16);
+    assert.equal(await offline.evaluate(()=>Object.keys(SF.assets.manifest).filter(id=>SF.assets.get(id)?.complete).length),15);
     await offline.keyboard.press('Enter');await offline.waitForFunction(()=>SF.game.state==='charSelect');
     await offline.keyboard.press('Enter');await offline.waitForFunction(()=>SF.game.state==='playing');
     await offline.waitForTimeout(500);
