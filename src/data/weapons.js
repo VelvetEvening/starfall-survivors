@@ -1,5 +1,5 @@
 /* ============================================================
- * weapons.js — 武器数据表（8 武器 + 6 超武进化配方）
+ * weapons.js — 武器数据表（6 武器 + 6 超武进化配方）
  * 元素系：fire 火灼烧扩散 / bolt 雷电磁与激光 / ice 冰减速冻结
  * 火武表保留原基准；常态间隔另乘 config.FIRE_COOLDOWN_MUL，超载按 VEGA_HEAT 替换倍率。
  *
@@ -67,7 +67,7 @@
     absoluteZero: {
       id: 'absoluteZero', name: '绝对零度', element: 'ice', super: true,
       icon: 'orb',
-      desc: '绝对冰环：新星永续跟随，冻结时间大增并强化冰系伤害。',
+      desc: '绝对冰环：周期释放新星，冻结时间大增并强化冰系伤害。',
       base: { damage: 88, cooldown: 2.8, radius: 110, slow: 0.5, freeze: 1.0 },
       levels: [
         { radius: +20, damage: +14 },
@@ -82,6 +82,7 @@
       id: 'mirrorWheel', name: '霜棱弹', element: 'ice',
       icon: 'frostShard',
       desc: '冰弹首次碰撞后冰爆消失；霜翎防反后下一发逐敌穿透冰爆，每目标最多受伤 3 次。',
+      evolveTo: 'frostLance', evolveWith: 'frostLens',
       base: { damage: 9, cooldown: 1.35, speed: 250, radius: 4, blast: 24, slow: 0.72, freeze: 0.15, life: 2.2, targetRange: 320 },
       levels: [
         { damage: +3, blast: +4 },
@@ -91,6 +92,21 @@
         { damage: +10, blast: +7, speed: +35 },
       ],
       levelDesc: ['伤害 +3 冰爆范围 +4', '冷却 -0.12秒 弹速 +25', '伤害 +5 减速加强 冰爆范围 +5', '伤害 +7 冷却 -0.15秒 冻结 +0.1秒', '伤害 +10 冰爆范围 +7 弹速 +35'],
+    },
+
+    // ---- 超武：极寒贯星（定向贯穿冰枪，单发共享命中上限） ----
+    frostLance: {
+      id: 'frostLance', name: '极寒贯星', element: 'ice', super: true,
+      icon: 'frostLance',
+      desc: '冰枪贯穿敌群，逐敌碎冰；每目标每发伤害一次，防反强化后最多三次。',
+      base: { damage: 42, cooldown: 1.02, speed: 360, radius: 5, blast: 42, slow: 0.66, freeze: 0.25,
+        life: 2.2, targetRange: 360, frostPierce: true, frostMaxHits: 1 },
+      levels: [
+        { damage: +12, blast: +6 },
+        { cooldown: -0.12, speed: +40 },
+        { damage: +18, blast: +8, radius: +1 },
+      ],
+      levelDesc: ['伤害 +12 碎冰范围 +6', '冷却 -0.12秒 弹速 +40', '伤害 +18 碎冰范围 +8 弹体半径 +1'],
     },
 
     // ---- 雷系：超电磁炮（蓄力 → 点击鼠标定向发射巨型穿甲弹） ----
@@ -117,8 +133,8 @@
     tempest: {
       id: 'tempest', name: '天罚电磁炮', element: 'bolt', super: true,
       icon: 'spark',
-      desc: '进化的电磁主炮：凝聚成贯穿一切的粗大光束，扫过之处皆成灰。',
-      base: { damage: 300, beam: true, length: 520, width: 22, charge: 6.0 },
+      desc: '电容瞬间放电，释放贯穿敌群的雷霆主炮。',
+      base: { damage: 300, beam: true, beamLife: 0.3, length: 520, width: 22, charge: 6.0 },
       levels: [
         { damage: +60 },
         { damage: +90, width: +2 },
@@ -127,64 +143,15 @@
       levelDesc: ['伤害 +60', '伤害 +90 光束宽度 +2', '伤害 +90 光束宽度 +2'],
     },
 
-    // ---- 无元素：环绕卫星（护卫轨道） ----
-    satellite: {
-      id: 'satellite', name: '环绕卫星', element: 'none',
-      collisionGuard: true,
-      icon: 'blade',
-      desc: '卫星环绕攻击；接触伤害减半。有盾撞敌造成盾量×5×角色等级固定伤害并推开小兵；破盾免溢伤并短暂无敌。',
-      evolveTo: 'galaxy', evolveWith: 'magnet',
-      base: { damage: 10, cooldown: 0, count: 1, radius: 34, rotSpeed: 2.4, hitInterval: 0.5 },
-      levels: [
-        { count: +1, damage: +4 },
-        { rotSpeed: +0.8, radius: +6 },
-        { damage: +6, count: +1 },
-        { rotSpeed: +0.8 },
-        { damage: +10, count: +1, radius: +6 },
-      ],
-      levelDesc: ['卫星数量 +1 伤害 +4', '转速 +0.8 环绕半径 +6', '伤害 +6 卫星数量 +1', '转速 +0.8', '伤害 +10 卫星数量 +1 环绕半径 +6'],
-    },
-    // ---- 超武：星系引擎 ----
-    // 进化起点对齐：单发伤害 ≥ 环绕卫星满级（30）
-    galaxy: {
-      id: 'galaxy', name: '星系引擎', element: 'none', super: true,
-      collisionGuard: true,
-      icon: 'star4',
-      desc: '更多大型卫星附带击退；保留接触减伤、有盾碰撞反击与破盾保护。',
-      base: { damage: 32, count: 4, radius: 46, rotSpeed: 3.4, hitInterval: 0.35, knockback: 90 },
-      levels: [
-        { damage: +9, count: +1 },
-        { rotSpeed: +0.6, radius: +8 },
-        { damage: +16, count: +1 },
-      ],
-      levelDesc: ['伤害 +9 卫星数量 +1', '转速 +0.6 环绕半径 +8', '伤害 +16 卫星数量 +1'],
-    },
-
-    // ---- 无元素：震荡盾盘（定向重盾击） ----
-    shieldDisc: {
-      id: 'shieldDisc', name: '震荡盾盘', element: 'none',
-      icon: 'satellite',
-      desc: '周期性朝最近敌人打出宽扇形盾击；护盾吸收伤害后强化下一击。',
-      base: { damage: 38, cooldown: 2.4, range: 72, arc: 0.9, knockback: 0, empoweredDamageMul: 1.5 },
-      levels: [
-        { damage: +10 },
-        { cooldown: -0.2, range: +8 },
-        { damage: +16, arc: +0.12, knockback: +42 },
-        { damage: +20, knockback: +18 },
-        { damage: +28, range: +10, arc: +0.12 },
-      ],
-      levelDesc: ['伤害 +10', '冷却 -0.2秒 攻击距离 +8', '伤害 +16 扇形扩大 解锁击退', '伤害 +20 击退 +18', '伤害 +28 攻击距离 +10 扇形扩大'],
-    },
-
     // ---- 火系：爆裂导弹（随机落点 AOE） ----
     // 导弹固有间隔 ×1.5，再叠火系常态 ×1.5（超载替换为 ×0.8）；基础灼烧 8 秒，其它机体常态 6.4 秒；焰锋常态/超载 9.6/24 秒。
     missile: {
       id: 'missile', name: '爆裂导弹', element: 'fire',
       icon: 'missile',
-      desc: '呼叫火力覆盖，随机轰炸敌群；灼烧中的敌人抗冰。',
+      desc: '呼叫火力覆盖，随机轰炸敌群。',
       evolveTo: 'nuke', evolveWith: 'crit',
       cooldownMul: 1.5,
-      base: { damage: 33, cooldown: 4.4, count: 1, blast: 34, burn: 4, burnDuration: 8, burnIceGuard: true, delay: 0.55 },
+      base: { damage: 33, cooldown: 4.4, count: 1, blast: 34, burn: 4, burnDuration: 8, delay: 0.55 },
       levels: [
         { count: +1 },
         { damage: +13.5, blast: +6 },
@@ -199,9 +166,9 @@
     nuke: {
       id: 'nuke', name: '轨道天火', element: 'fire', super: true,
       icon: 'missile',
-      desc: '毁灭齐射：多枚重装导弹，爆炸留下火海；灼烧中的敌人抗冰。',
+      desc: '毁灭齐射：多枚重装导弹，爆炸留下火海。',
       cooldownMul: 1.5,
-      base: { damage: 72, cooldown: 3.2, count: 5, blast: 52, burn: 8, burnDuration: 8, burnIceGuard: true, delay: 0.4, fireField: 8 },
+      base: { damage: 72, cooldown: 3.2, count: 5, blast: 52, burn: 8, burnDuration: 8, delay: 0.4, fireField: 8 },
       levels: [
         { count: +1, damage: +16.5 },
         { cooldown: -0.5, blast: +10 },
@@ -210,38 +177,36 @@
       levelDesc: ['导弹数量 +1 伤害 +16.5', '冷却 -0.5秒 爆炸半径 +10', '导弹数量 +2 火海伤害 +6'],
     },
 
-    // ---- 无元素：激光扫射（旋转扫射光束） ----
-    // 定位：基础武器第一梯队（满级 20 伤 / tick 0.18 ≈ 111 DPS，压常态爆裂导弹 ~34.5）。
-    // 曾 buff 到 128 后实战发现：冲撞型 BOSS + 强化精英的高压环境下光束难以全程贴住目标，
-    // 回调到 106；冷却缩减削弱轮补偿 +5% 至 111（刻意低于曾否决的 128）
+    // ---- 雷系：激光扫射（锁定、短扫、间歇后重新锁定） ----
+    // 满级接触速率 20/0.18；实际输出受扫射角度、间歇和命中率影响。
     laser: {
       id: 'laser', name: '激光扫射', element: 'bolt',
       icon: 'spark',
-      desc: '持续旋转的激光束，扫过之处皆成灰。',
+      desc: '锁定最近敌人，以跳动电弧包覆的激光短时扫射。',
       evolveTo: 'spectrum', evolveWith: 'armor',
-      base: { damage: 7, cooldown: 0, length: 90, rotSpeed: 1.6, tick: 0.2 },
+      base: { damage: 7, cooldown: 0, length: 90, sweepDuration: 0.7, sweepPause: 0.6, sweepArc: 0.6, tick: 0.2 },
       levels: [
         { damage: +3, length: +14 },
-        { rotSpeed: +0.4 },
+        { sweepPause: -0.08 },
         { damage: +4, length: +18 },
-        { rotSpeed: +0.5, tick: -0.02 },
+        { sweepPause: -0.08, tick: -0.02 },
         { damage: +6, length: +22 },
       ],
-      levelDesc: ['伤害 +3 光束长度 +14', '转速 +0.4', '伤害 +4 光束长度 +18', '转速 +0.5 攻击频率提升', '伤害 +6 光束长度 +22'],
+      levelDesc: ['伤害 +3 光束长度 +14', '扫射间歇 -0.08秒', '伤害 +4 光束长度 +18', '扫射间歇 -0.08秒 攻击频率提升', '伤害 +6 光束长度 +22'],
     },
     // ---- 超武：光谱裁决 ----
-    // 进化起点对齐：主束接触 DPS ≥ 激光扫射满级（20/0.18≈111）；副光束为反向短束、半伤害（真实结算）
+    // 副束合并为单束，保留原主副束同时命中的理论总直伤；每目标每 tick 仅结算一次。
     spectrum: {
       id: 'spectrum', name: '光谱裁决', element: 'bolt', super: true,
       icon: 'star4',
-      desc: '双色巨镰激光：更长更快，末端裂变副光束。',
-      base: { damage: 16, cooldown: 0, length: 150, rotSpeed: 2.6, tick: 0.12, fork: true },
+      desc: '单束高压电流扫射，雷弧沿光束奔涌，持续灼击前方敌人。',
+      base: { damage: 24, cooldown: 0, length: 150, sweepDuration: 0.85, sweepPause: 0.45, sweepArc: 0.85, tick: 0.12 },
       levels: [
-        { damage: +3, length: +20 },
-        { rotSpeed: +0.5 },
-        { damage: +6, length: +30 },
+        { damage: +4.5, length: +20 },
+        { sweepPause: -0.08 },
+        { damage: +9, length: +30 },
       ],
-      levelDesc: ['伤害 +3 光束长度 +20', '转速 +0.5', '伤害 +6 光束长度 +30'],
+      levelDesc: ['伤害 +4.5 光束长度 +20', '扫射间歇 -0.08秒', '伤害 +9 光束长度 +30'],
     },
   };
 

@@ -14,7 +14,7 @@ for (let i = 2; i < process.argv.length; i += 2) {
   options[key] = path.resolve(process.argv[i + 1]);
 }
 const source = options['--source'] || ROOT;
-const output = options['--out'] || path.join(ROOT, 'gui-test-screenshots', 'balance-v1', 'balance-audit.json');
+const output = options['--out'] || path.join(ROOT, 'gui-test-screenshots', 'v2.0', 'balance-audit.json');
 global.window = global;
 global.location = { search: '' };
 global.SF = {};
@@ -119,7 +119,7 @@ function heatAudit(name, loadout, developed = false) {
       const count = Math.ceil(heat.duration / interval);
       const dps = w.spec.burn * (pl.stats.resonance.fire ? C.BURN_RESONANCE_MUL : 1);
       const life = (w.spec.burnDuration || C.FIRE_BASE_BURN_DURATION) * heat.burnDurationMul
-        * (pl.traits.layeredBurn ? C.VEGA_BURN_DURATION_MUL : 1);
+        * (pl.traits.layeredBurn ? C.VEGA_BURN_DURATION_MUL : 1) * (1 + (pl.stats.burnDuration || 0));
       return { weapon: w.def.id, interval, maxLayersPerActivation: count, layerDps: dps, life, totalDamage: count * dps * life };
     });
     bound = { rechargeMinimum: recharge, cycleMinimum: cycle, dutyCycleMaximum: heat.duration / cycle,
@@ -131,7 +131,7 @@ function heatAudit(name, loadout, developed = false) {
   return { name, ...build, bound, ordinary, skill, skillExtraDps: skill.totalDps - ordinary.totalDps };
 }
 function railAudit(name, id, level, developed = false) {
-  // nuke + crit is a legal high-crit partner; total 2 weapons / 2 passives / 20 home points.
+  // nuke + crit is a legal high-crit partner; total 2 weapons / 2 passives / 30 home points.
   const g = fixture('thunder', developed ? [[id, level], ['nuke', 4]] : [[id, level]], developed, ['cooldown', 'crit']);
   const pl = g.player, w = pl.weapons[0], hit = expectedHit(w, pl), C = SF.config.THUNDER_CAPACITOR;
   const charge = w.chargeDuration(pl), store = pl.stats.railgunStorage;
@@ -146,10 +146,10 @@ function railAudit(name, id, level, developed = false) {
 }
 function frostAudit(name, orb, level, developed = false) {
   const g = fixture('firefly', [[orb, level], ['mirrorWheel', 6]], developed, ['cryo', 'crit']), pl = g.player;
-  const C = SF.config, cycle = C.FIREFLY_CYCLE_INTERVAL, stacks = C.ICE_STACK_MUL ** C.ICE_STACK_MAX;
+  const C = SF.config, cycle = pl.stats.frostCounterCooldown, stacks = C.ICE_STACK_MUL ** C.ICE_STACK_MAX;
   const ring = expectedHit(pl.weapons[0], pl), shard = expectedHit(pl.weapons[1], pl);
   const cap = C.FIREFLY_FROST_MAX_HITS || C.ENEMY_CAP;
-  const retaliation = ring * C.FIREFLY_ICE_RETALIATE_CENTER_MUL * stacks / cycle;
+  const retaliation = ring * C.FIREFLY_ICE_RETALIATE_CENTER_MUL * (1 + (pl.stats.counterDamage || 0)) * stacks / cycle;
   // One ordinary shard hit is already in weapon DPS; count only the extra overlap hits.
   const shardExtra = (cap - 1) * shard * stacks / cycle;
   const normalWeapons = pl.weapons.reduce((s, w) => s + expectedHit(w, pl) / (w.spec.cooldown * pl.stats.cooldownMul), 0);
@@ -170,48 +170,24 @@ function frostCrowd(count) {
   return { enemies: count, contacts: p.hitSet.size, bossDamage: boss.maxHp - boss.hp,
     damageInSingleHits: (boss.maxHp - boss.hp) / single, freezeT: boss.freezeT };
 }
-function armorAudit(name, developed = false) {
-  const g = fixture('dawn', [['satellite', 6], ['shieldDisc', 6]], developed, ['magnet', 'crit']);
-  const pl = g.player, C = SF.config, shock = C.ARMOR_SHOCK, w = pl.weapons[1];
-  const interval = pl.stats.shieldEvery || C.SHIELD_REGEN_INTERVAL;
-  const regen = (C.SHIELD_REGEN_AMT + pl.stats.shieldAmt) / interval;
-  const duration = 360; let shocks = 0;
-  const release = pl.triggerArmorShock;
-  pl.triggerArmorShock = function (game) { shocks++; return release.call(this, game); };
-  // Worst availability: absorb each recharge immediately; no artificially injected shields.
-  pl.weapons = [];
-  for (let frame = 0; frame < duration * 60; frame++) {
-    pl.update(STEP, g);
-    if (pl.shield > 0) pl.takeDamage(pl.shield + pl.stats.armor + pl.stats.shieldArmor, { game: g });
-  }
-  pl.weapons = [w];
-  return { name, shieldPerSecond: regen, shieldBudgetInterval: shock.threshold / regen,
-    shockHit: shock.damage * pl.stats.damageMul,
-    shockDpsUpper: shock.damage * pl.stats.damageMul * regen / shock.threshold,
-    shieldDiscExtraDpsUpper: expectedHit(w, pl) * (w.spec.empoweredDamageMul - 1) / (w.spec.cooldown * pl.stats.cooldownMul),
-    duration, shocks, measuredShockDps: shocks * shock.damage * pl.stats.damageMul / duration };
-}
-
 const report = {
   source, assumptions: {
     base: '零工坊、无矩阵/被动/暴击，保留角色倍率；双冰共鸣只影响控制，不增伤。',
-    developed: '满工坊、20 点本系、列出的满级武器/被动，暴击取期望；没有假设所有矩阵同时点满。',
+    developed: '满工坊、30 点本系、列出的满级武器/被动，暴击取期望；没有假设所有矩阵同时点满。',
     damage: '单目标；霜翎按 Boss 可用的满冰蚀 ×1.331，其它角色无冰蚀。小怪冻结易伤另乘 ×1.2。',
     cadence: '焰锋用实际固定步长 360 秒孤立 Boss 木桩，分别关闭/开启技能；命中丢失、停滞、等待会降低输出。',
     fire: '火武直伤用平均暴击倍率换算，灼烧/火海沿用不吃火力暴击的原规则；技能额外 DPS 是同版本开启与关闭技能的差。',
     frost: '防反成功率是条件场景，不是实测人类成功率；穿透的普通第一击已排除在额外 DPS 之外。',
-    armor: '震荡按护盾供应预算算上界；盾盘上界假设每击都强化，两项上界不保证可同时取得。',
   },
   config: { heat: SF.config.VEGA_HEAT, normalFireCooldownMul: SF.config.FIRE_COOLDOWN_MUL || 1,
     normalBurnDurationMul: SF.config.FIRE_BURN_DURATION_MUL || 1, capacitor: SF.config.THUNDER_CAPACITOR,
-    frostMaxHits: SF.config.FIREFLY_FROST_MAX_HITS || null, armorShock: SF.config.ARMOR_SHOCK },
+    frostMaxHits: SF.config.FIREFLY_FROST_MAX_HITS || null },
   heat: [heatAudit('初始飞刃', [['blade', 1]]), heatAudit('满级飞刃', [['blade', 6]]),
     heatAudit('双火超武', [['prism', 4], ['nuke', 4]]), heatAudit('双火终盘', [['prism', 4], ['nuke', 4]], true)],
   rail: [railAudit('电磁 Lv.1', 'chain', 1), railAudit('电磁 Lv.6', 'chain', 6),
     railAudit('天罚 Lv.1', 'tempest', 1), railAudit('天罚 Lv.4', 'tempest', 4), railAudit('天罚终盘', 'tempest', 4, true)],
   frost: [frostAudit('满级双冰', 'orb', 6), frostAudit('双冰终盘', 'absoluteZero', 4, true)],
   frostCrowd: [1, 3, 12, SF.config.ENEMY_CAP].map(frostCrowd),
-  armor: [armorAudit('基础回盾'), armorAudit('壁垒终盘', true)],
 };
 const json = JSON.stringify(report, (_, v) => { assert.ok(typeof v !== 'number' || Number.isFinite(v), 'Non-finite measurement'); return v; }, 2);
 fs.mkdirSync(path.dirname(output), { recursive: true }); fs.writeFileSync(output, json + '\n');

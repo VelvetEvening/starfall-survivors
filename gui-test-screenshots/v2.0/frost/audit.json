@@ -1,0 +1,85 @@
+{
+  "results": [
+    {
+      "label": "desktop",
+      "stage": "flight",
+      "opaque": 726,
+      "ready": false,
+      "projectiles": 1,
+      "contacts": 0,
+      "bursts": 0,
+      "assets": true
+    },
+    {
+      "label": "desktop",
+      "stage": "impact",
+      "opaque": 726,
+      "ready": false,
+      "projectiles": 0,
+      "contacts": 0,
+      "bursts": 1,
+      "assets": true
+    },
+    {
+      "label": "desktop",
+      "stage": "empowered",
+      "opaque": 726,
+      "ready": false,
+      "projectiles": 1,
+      "contacts": 3,
+      "bursts": 2,
+      "assets": true
+    },
+    {
+      "label": "desktop",
+      "stage": "ready",
+      "opaque": 726,
+      "ready": true,
+      "projectiles": 0,
+      "contacts": 0,
+      "bursts": 0,
+      "assets": true
+    },
+    {
+      "label": "mobile",
+      "stage": "flight",
+      "opaque": 726,
+      "ready": false,
+      "projectiles": 1,
+      "contacts": 0,
+      "bursts": 0,
+      "assets": true
+    },
+    {
+      "label": "mobile",
+      "stage": "impact",
+      "opaque": 726,
+      "ready": false,
+      "projectiles": 0,
+      "contacts": 0,
+      "bursts": 1,
+      "assets": true
+    },
+    {
+      "label": "mobile",
+      "stage": "empowered",
+      "opaque": 726,
+      "ready": false,
+      "projectiles": 1,
+      "contacts": 3,
+      "bursts": 2,
+      "assets": true
+    },
+    {
+      "label": "mobile",
+      "stage": "ready",
+      "opaque": 726,
+      "ready": true,
+      "projectiles": 0,
+      "contacts": 0,
+      "bursts": 0,
+      "assets": true
+    }
+  ],
+  "errors": []
+}

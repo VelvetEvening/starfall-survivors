@@ -22,20 +22,11 @@
         pct:(w.charges+(ready?0:progress))/max,segments:max,color:'bolt1',ready,
         detail:pl.weaponLockT>0?'停滞 · 储能保留':ready?'点击 · 三发合为一炮':w.charges>0?'点击单发 · 等满仓聚能':'下一发 '+Math.max(0,w.chargeDuration(pl)-w.chargeT).toFixed(1)+'s'};
     }
-    if(pl.traits.regenShield) {
-      const shock=SF.config.ARMOR_SHOCK,ready=pl.armorShockCharge>=shock.threshold;
-      const shieldEvery=pl.stats.shieldEvery||SF.config.SHIELD_REGEN_INTERVAL;
-      const shieldReady=pl.shieldDiscEmpowered&&pl.hasWeapon('shieldDisc');
-      return {label:'冲击',value:pl.armorShockFlashT>0?'震荡释放':Math.floor(pl.armorShockCharge)+' / '+shock.threshold,
-        pct:pl.armorShockCharge/shock.threshold,segments:1,color:'armor0',ready,
-        detail:ready?(pl.armorShockCd>0?'震荡冷却 '+pl.armorShockCd.toFixed(1)+'s':'满能 · 下次盾伤释放'):
-          shieldReady?'强化盾击已备':pl.shield>=SF.config.SHIELD_CAP?'护盾已满 · 等待吸伤':'护盾回充 '+Math.max(0,shieldEvery-pl.shieldTimer).toFixed(1)+'s'};
-    }
     if(pl.traits.cycleInvuln) {
-      const active=pl.phaseInvulnT>0,ready=pl.weapons.some(w=>w.frostEmpowered);
-      return {label:'防反',value:pl.counterFlashT>0?'防反成功':active?(pl.iceRetaliationUsed?'窗口免伤中':'窗口 '+pl.phaseInvulnT.toFixed(1)+'s'):Math.max(0,pl.cycleInvulnCd).toFixed(1)+'s 后开启',
-        pct:active?1:1-clamp(pl.cycleInvulnRingCd/pl.cycleInvulnRingMax,0,1),segments:1,color:'ice1',ready:active||ready,
-        detail:ready?(pl.weaponLockT>0?'穿透冰弹已备 · 停滞':'穿透冰弹已备'):active?'窗口内免伤 · 每轮反击一次':'冰系命中叠加冰蚀'};
+      const active=pl.phaseInvulnT>0,ready=pl.cycleInvulnCd<=0&&pl.weaponLockT<=0;
+      return {label:'防反',value:pl.counterFlashT>0?'防反成功':active?'防反中':pl.weaponLockT>0?'停滞':ready?'空格 · 防反':Math.ceil(pl.cycleInvulnCd)+'s',
+        pct:1-clamp(pl.cycleInvulnCd/pl.counterCooldownMax,0,1),segments:1,color:'ice1',ready:active||ready,
+        detail:pl.weapons.some(w=>w.frostEmpowered)?'穿透冰弹已备':''};
     }
     return null;
   }
@@ -43,8 +34,8 @@
   function drawCharacterStatus(ctx,pl) {
     const status=characterStatus(pl);
     if(!status)return;
-    const x=224,y=239,w=176;
-    SF.widgets.panel(ctx,x-4,y-4,w+8,31,{alpha:0.76,line:status.ready?status.color:'uiLine'});
+    const x=224,y=246,w=176;
+    SF.widgets.panel(ctx,x-4,y-4,w+8,21,{alpha:0.76,line:status.ready?status.color:'uiLine'});
     SF.font.drawText(ctx,status.label,x,y,{size:6.5,color:status.color,weight:'650'});
     SF.font.drawText(ctx,status.value,x+w,y,{size:6.5,color:status.ready?'white':'silver',align:'right'});
     const gap=2,segmentW=(w-gap*(status.segments-1))/status.segments;
@@ -52,7 +43,6 @@
       SF.widgets.bar(ctx,x+i*(segmentW+gap),y+10,segmentW,2.5,
         clamp(status.pct*status.segments-i,0,1),status.color);
     }
-    SF.font.drawText(ctx,status.detail,x,y+18,{size:6,color:status.ready?'uiText':'uiDim'});
   }
 
   function draw(ctx,game) {
@@ -77,11 +67,8 @@
     SF.font.drawText(ctx,'LV. '+game.level,124,12,{size:7,color:'starDust',align:'right'});
     SF.widgets.bar(ctx,12,27,112,4,pl.hp/st.maxHp,low?'uiWarn':pl.char.color);
     SF.font.drawText(ctx,Math.ceil(pl.hp)+' / '+Math.round(st.maxHp),12,35,{size:6.5,color:low?'uiWarn':'silver'});
-    if(pl.shield>0) {
-      SF.widgets.bar(ctx,12,32.5,112,1.5,pl.shield/SF.config.SHIELD_CAP,'gold');
-      SF.font.drawText(ctx,'护盾 '+Math.ceil(pl.shield),124,35,{size:6.5,color:'gold',align:'right'});
-    }
     drawCharacterStatus(ctx,pl);
+    if(pl.weaponLockT>0)SF.font.drawText(ctx,'武器停滞 '+Math.ceil(pl.weaponLockT)+'s',12,48,{size:7,color:'uiWarn'});
 
     const remain=Math.max(0,SF.config.RUN_DURATION-game.runTime);
     const mm=Math.floor(remain/60),ss=Math.floor(remain%60);
@@ -98,14 +85,14 @@
       const thresholds=boss.def.twoPhase?[0.5]:[0.33,0.66];
       ctx.fillStyle=pal.css('bg0');
       for(const threshold of thresholds)ctx.fillRect(151+178*threshold,39,0.8,4.5);
-      SF.font.drawText(ctx,boss._phase2?'狂怒阶段 / ENRAGED':'阶段 '+(game._bossPhase+1)+' / 接触核心造成伤害',240,47,
+      SF.font.drawText(ctx,boss._phase2?'狂怒阶段':'阶段 '+(game._bossPhase+1),240,47,
         {size:5.6,color:boss._phase2?'uiWarn':'uiDim',align:'center'});
     }
     SF.font.drawText(ctx,'击杀  '+game.runStats.kills,468,11,{size:8,color:'uiText',align:'right'});
     SF.font.drawText(ctx,'得分  '+Math.floor(game.score).toLocaleString('en-US'),468,24,{size:8,color:'gold',align:'right'});
     SF.font.drawText(ctx,(game.difficulty?.name||'正常')+'  /  P 暂停',468,38,{size:6,color:'uiDim',align:'right'});
 
-    SF.font.drawText(ctx,'武器 / ARMAMENT',12,228,{size:5.7,color:'uiDim'});
+    SF.font.drawText(ctx,'武器',12,228,{size:5.7,color:'uiDim'});
     let x=12;const y=241;
     for(let i=0;i<4;i++){
       const w=pl.weapons[i];
@@ -118,9 +105,9 @@
         if(w.spec.charge!==undefined)pct=w.chargePct;
         else if(w.spec.cooldown>0.2)pct=1-clamp(w.cdTimer/w.cooldownDuration(pl),0,1);
         SF.widgets.bar(ctx,x+3,y+18,14,0.8,pct,w.spec.charge!==undefined?'bolt1':pal.elementColor(w.def.element));
-        const primed=w.railgunReady||w.frostEmpowered||(w.def.id==='shieldDisc'&&pl.shieldDiscEmpowered);
+        const primed=w.railgunReady||w.frostEmpowered;
         if(primed){
-          const color=w.frostEmpowered?'ice2':w.def.id==='shieldDisc'?'armor0':w.railgunBurstReady?'white':'bolt1';
+          const color=w.frostEmpowered?'ice2':w.railgunBurstReady?'white':'bolt1';
           ctx.strokeStyle=pal.css(color,0.65+Math.sin(game.time*4)*0.2);ctx.lineWidth=0.7;ctx.strokeRect(x+0.5,y+0.5,19,19);
         }
         if(pl.weaponLockT>0){ctx.strokeStyle=pal.css('uiDim');ctx.lineWidth=0.7;ctx.beginPath();ctx.moveTo(x+4,y+15);ctx.lineTo(x+16,y+3);ctx.stroke();}
@@ -130,7 +117,7 @@
       x+=24;
     }
     x+=6;
-    SF.font.drawText(ctx,'模组 / MODULES',x,228,{size:5.7,color:'uiDim'});
+    SF.font.drawText(ctx,'模组',x,228,{size:5.7,color:'uiDim'});
     for(const [id,inst] of pl.passives){
       const def=SF.passives[id];
       SF.widgets.panel(ctx,x,y,20,20,{alpha:0.8});
@@ -138,7 +125,6 @@
       SF.font.drawText(ctx,String(inst.level),x+17,y+14,{size:5,color:'silver',align:'right'});
       x+=24;
     }
-    if(pl.passives.size===0)SF.font.drawText(ctx,'尚未装配',x,248,{size:6,color:'uiDim'});
 
     SF.font.drawText(ctx,'元素共鸣',468,241,{size:5.8,color:'uiDim',align:'right'});
     const elements=[['fire','火'],['bolt','雷'],['ice','冰']];
@@ -149,7 +135,7 @@
       SF.font.drawText(ctx,label,xx+6.5,254,{size:7,color:active?col:'grayLight',align:'center'});
       if(active){ctx.fillStyle=pal.css(col);ctx.fillRect(xx,263,13,0.6);}
     });
-    SF.font.drawText(ctx,'◆ '+pl.starPoints+'  专精点   /   Tab 矩阵',468,224,{size:7,color:pl.starPoints?'uiAccentHi':'uiDim',align:'right'});
+    SF.font.drawText(ctx,'Tab 矩阵 · '+pl.starPoints+' 点',468,224,{size:7,color:pl.starPoints?'uiAccentHi':'uiDim',align:'right'});
     ctx.restore();
   }
   SF.hud={draw,characterStatus};

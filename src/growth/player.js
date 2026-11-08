@@ -34,11 +34,6 @@
       this.stats = {};
       this.recalcStats();
       this.hp = this.stats.maxHp;
-      this.shield = 0;
-      this.shieldDiscEmpowered = false;
-      this.armorShockCharge = 0;
-      this.armorShockCd = 0;
-      this.armorShockFlashT = 0;
       this.heat = 0;
       this.heatGateT = this.traits.fireOverdrive ? SF.config.VEGA_HEAT.interval : 0;
       this.fireOverdriveT = 0;
@@ -47,15 +42,13 @@
 
       // 受击/复活
       this.invulnT = 0;
-      this.phaseInvulnT = 0;   // 周期无敌帧（霜翎特性，与受击无敌独立）
-      this.cycleInvulnCd = this.traits.cycleInvuln ? SF.config.FIREFLY_CYCLE_INTERVAL : 0;
-      this.cycleInvulnRingCd = this.cycleInvulnCd;
-      this.cycleInvulnRingMax = this.cycleInvulnCd || 1;
+      this.phaseInvulnT = 0;   // 主动防反帧（霜翎特性，与受击无敌独立）
+      this.cycleInvulnCd = 0;
+      this.counterCooldownMax = this.stats.frostCounterCooldown;
       this.weaponLockT = 0;    // BOSS2「深渊停滞」：武器冷却与蓄力冻结
       this.hurtFlash = 0;
       this.speedBoostT = 0; // 霜翎特性
       this.revived = false;
-      this.shieldTimer = 0;
       this.regenPool = 0;
       this.visT = 0;
     }
@@ -117,17 +110,13 @@
         xpMul: 1,
         iceDmg: 0,
         iceAreaMul: 0,
+        frostProjectileSpeed: 0,
         boltDmg: 0,          // 磁轨矩阵「聚束导轨」：雷系武器伤害加成
         chargeRed: 0,        // 磁轨矩阵「超导线圈」：电磁炮蓄力缩减（乘在 charge 上的减法）
         regen: 0,
         invulnTime: SF.config.INVULN_TIME,
         phaseInvulnDuration: SF.config.FIREFLY_CYCLE_INVULN_BASE,
-        phaseInvulnBonus: 0,
         revive: 0,
-        shieldEvery: 0,
-        shieldAmt: 0,
-        shieldArmor: 0,
-        emergencyRegen: 0,
         magnetChance: 0,
         resonance: { fire: false, bolt: false, ice: false },
       };
@@ -165,9 +154,14 @@
       }
       this._starResonance = starRes;
 
-      // 所有矩阵加成聚合完成后，才结算派生属性，防止防反时长节点失效。
-      S.phaseInvulnDuration = Math.min(SF.config.FIREFLY_CYCLE_INVULN_CAP,
-        SF.config.FIREFLY_CYCLE_INVULN_BASE + S.phaseInvulnBonus);
+      // 防反冷却只读取矩阵专用效果；普通冷却、装备、无敌属性都不参与。
+      S.frostCounterCooldown = Math.max(SF.config.FIREFLY_COUNTER_MIN_COOLDOWN,
+        SF.config.FIREFLY_CYCLE_INTERVAL - (fx.frostCounterReduction || 0));
+      if (this.cycleInvulnCd > 0 && this.stats.frostCounterCooldown > 0) {
+        this.cycleInvulnCd *= S.frostCounterCooldown / this.stats.frostCounterCooldown;
+        this.counterCooldownMax = S.frostCounterCooldown;
+      }
+
       S.maxHp *= 1 + S.maxHpMul;
 
       this.stats = S;
@@ -192,8 +186,6 @@
 
     // ---------- 更新 ----------
     update(dt, game) {
-      this.armorShockCd = Math.max(0, this.armorShockCd - dt);
-      this.armorShockFlashT = Math.max(0, this.armorShockFlashT - dt);
       if (this.weaponLockT <= 0) {
         if (this.fireOverdriveT > 0) {
           const remaining = Math.max(0, this.fireOverdriveT - dt);
@@ -206,6 +198,7 @@
       const mv = input.moveVector();
       let speed = this.stats.speed;
       if (this.speedBoostT > 0) { this.speedBoostT -= dt; speed *= SF.config.FIREFLY_SPEED_BOOST; }
+      this.pickupFrom = { x: this.x, y: this.y };
       this.x += mv.x * speed * dt;
       this.y += mv.y * speed * dt;
       this.moving = !!(mv.x || mv.y);
@@ -220,33 +213,13 @@
       if (this.hurtFlash > 0) this.hurtFlash -= dt;
       this.visT += dt;
 
-      // 霜翎：周期计时保持 5 秒一轮；无敌期间进度圈保持满，结束后视觉进度从 0 重新积累。
+      // 主动防反：固定窗口，冷却从按下开始；暂停由 game 状态机冻结。
       if (this.traits.cycleInvuln) {
-        this.cycleInvulnCd -= dt;
-        if (this.phaseInvulnT > 0) {
-          this.phaseInvulnT -= dt;
-          if (this.phaseInvulnT <= 0) {
-            this.phaseInvulnT = 0;
-            this.cycleInvulnRingMax = Math.max(0.001, this.cycleInvulnCd);
-            this.cycleInvulnRingCd = this.cycleInvulnRingMax;
-          }
-        } else {
-          this.cycleInvulnRingCd = Math.max(0, this.cycleInvulnRingCd - dt);
-          if (this.cycleInvulnCd <= 0) {
-            this.cycleInvulnCd = SF.config.FIREFLY_CYCLE_INTERVAL;
-            this.cycleInvulnRingMax = SF.config.FIREFLY_CYCLE_INTERVAL;
-            this.cycleInvulnRingCd = 0;
-            this.phaseInvulnT = Math.min(SF.config.FIREFLY_CYCLE_INVULN_CAP, this.stats.phaseInvulnDuration);
-            this.iceRetaliationUsed = false;
-            SF.particles.ring(this.x, this.y, { color: 'ice2', maxR: 20, life: 0.45 });
-            SF.audio.sfx.uiTick();
-          }
-        }
+        this.cycleInvulnCd = this.cycleInvulnCd - dt <= 1e-9 ? 0 : this.cycleInvulnCd - dt;
+        this.phaseInvulnT = this.phaseInvulnT - dt <= 1e-9 ? 0 : this.phaseInvulnT - dt;
       }
-
       // 再生
-      const repair = this.hp < this.stats.maxHp * SF.config.EMERGENCY_REPAIR_HP_RATIO ? this.stats.emergencyRegen : 0;
-      const regen = this.stats.regen + repair;
+      const regen = this.stats.regen;
       if (regen > 0 && this.hp < this.stats.maxHp) {
         this.regenPool += regen * dt;
         if (this.regenPool >= 1) {
@@ -256,20 +229,8 @@
         }
       }
 
-      // 壁垒矩阵提供额外回充，可与铁壁特质叠加；其它机体也可通过矩阵获得护盾。
-      const shieldEvery = this.stats.shieldEvery > 0 ? this.stats.shieldEvery : (this.traits.regenShield ? SF.config.SHIELD_REGEN_INTERVAL : 0);
-      if (shieldEvery > 0) {
-        this.shieldTimer += dt;
-        if (this.shieldTimer >= shieldEvery) {
-          this.shieldTimer -= shieldEvery;
-          const amt = (this.stats.shieldAmt || 0) + (this.traits.regenShield ? SF.config.SHIELD_REGEN_AMT : 0);
-          this.shield = Math.min(this.shield + amt, SF.config.SHIELD_CAP);
-          SF.particles.ring(this.x, this.y, { color: 'gold', maxR: 16, life: 0.4 });
-        }
-      }
-
       // 武器
-      if (input.isPressed('skill')) this.activateFireOverdrive();
+      if (input.isPressed('skill')) { this.activateFireOverdrive(); this.activateFrostCounter(); }
       this.updateResonance();
       for (const w of this.weapons) w.update(dt, game);
 
@@ -279,11 +240,9 @@
       }
     }
 
-    get collisionGuard() { return this.weapons.some(w => w.def.collisionGuard); }
-
     takeDamage(dmg, source = {}) {
       if (this.dead) return 0;
-      // 霜翎周期防反：命中窗口内免疫本次伤害，但保留一次反制冰域。
+      // 霜翎主动防反：命中窗口内免疫本次伤害，但保留一次反制冰域。
       // 普通受击无敌仍然只免伤，不触发防反。
       if (this.phaseInvulnT > 0) {
         if (dmg > 0) this.triggerIceRetaliation(source);
@@ -291,47 +250,7 @@
       }
       if (this.invulnT > 0) return 0;
       const s = this.stats;
-      const guarded = this.collisionGuard;
-      const shieldBefore = this.shield;
-      if (guarded && source.type === 'contact') {
-        dmg *= SF.config.COLLISION_GUARD.damageTakenMul;
-        const enemy = source.attacker;
-        if (shieldBefore > 0 && source.contactStart !== false && enemy && !enemy.dead && source.game) {
-          const value = shieldBefore * SF.config.COLLISION_GUARD.damagePerShieldLevel * source.game.level;
-          enemy.takeDamage(value, source.game, 'armor0', { fixed: true });
-          if (!enemy.dead && !enemy.def.boss && !enemy.def.elite) {
-            enemy.knockback(this.x, this.y, SF.config.COLLISION_GUARD.knockback);
-          }
-          SF.particles.ring(enemy.x, enemy.y, { color: 'armor0', maxR: 16, life: 0.25, width: 2 });
-          SF.particles.spark(enemy.x, enemy.y, Math.atan2(enemy.y-this.y,enemy.x-this.x),
-            { color: 'white', count: 6, speed: 85 });
-        }
-      }
-      let d = Math.max(0, dmg - s.armor - (this.shield > 0 ? s.shieldArmor : 0));
-      // 护盾优先
-      if (this.shield > 0) {
-        const abs = Math.min(this.shield, d);
-        this.shield -= abs; d -= abs;
-        if (abs > 0) {
-          this.shieldDiscEmpowered = true;
-          if (this.traits.regenShield) {
-            const shock = SF.config.ARMOR_SHOCK;
-            this.armorShockCharge = Math.min(shock.threshold, this.armorShockCharge + abs);
-            if (this.armorShockCharge >= shock.threshold && this.armorShockCd <= 0 && source.game) {
-              this.armorShockCharge = 0;
-              this.armorShockCd = shock.cooldown;
-              this.triggerArmorShock(source.game);
-            }
-          }
-        }
-      }
-      if (guarded && shieldBefore > 0) {
-        if (this.shield === 0) {
-          this.invulnT = s.invulnTime + (s.invulnBonus || 0);
-          SF.particles.ring(this.x, this.y, { color: 'white', maxR: 24, life: 0.35, width: 2 });
-        }
-        return 0; // 这一击只扣护盾；破盾溢出不得扣血。
-      }
+      const d = Math.max(0, dmg - s.armor);
       if (d <= 0) return 0;
       this.hp -= d;
       this.invulnT = s.invulnTime + (s.invulnBonus || 0);
@@ -344,21 +263,6 @@
       if (this.traits.hurtSpeedBoost) this.speedBoostT = 2;
       if (this.hp <= 0) this.die();
       return d;
-    }
-
-    triggerArmorShock(game) {
-      const { radius, damage, knockback } = SF.config.ARMOR_SHOCK;
-      const radius2 = radius * radius;
-      for (const e of game.enemies.list) {
-        if (e.dead || dist2(this.x, this.y, e.x, e.y) > radius2) continue;
-        e.takeDamage(damage * this.stats.damageMul, game, 'hero1');
-        e.knockback(this.x, this.y, knockback);
-      }
-      this.armorShockFlashT = 0.65;
-      SF.particles.ring(this.x, this.y, { color: 'armor0', maxR: radius, life: 0.35, width: 2 });
-      SF.particles.ring(this.x, this.y, { color: 'hero1', maxR: radius * 0.8, life: 0.28, width: 0.8 });
-      SF.particles.burst(this.x, this.y, { color: 'armor0', count: 8, speed: 85, life: 0.22, size: 1.5 });
-      SF.audio.sfx.armorShock();
     }
 
     // 同一轮火系齐射共享 attack。灼烧和火海不计热，超载发射的在途弹也不能回填。
@@ -399,16 +303,28 @@
       return true;
     }
 
+    activateFrostCounter() {
+      if (!this.traits.cycleInvuln || this.dead || this.weaponLockT > 0 || this.cycleInvulnCd > 0) return false;
+      this.cycleInvulnCd = this.stats.frostCounterCooldown;
+      this.counterCooldownMax = this.cycleInvulnCd;
+      this.phaseInvulnT = SF.config.FIREFLY_CYCLE_INVULN_BASE;
+      this.iceRetaliationUsed = false;
+      SF.particles.ring(this.x, this.y, { color: 'ice2', maxR: 20, life: 0.2 });
+      SF.audio.sfx.uiTick();
+      return true;
+    }
+
     triggerIceRetaliation(source = {}) {
       if (!this.traits.iceStack || this.iceRetaliationUsed || !source.game) return;
       const weapon = this.weapons.find(w => w.def.element === 'ice');
       if (!weapon || !SF.projectiles?.spawnIceRetaliationField) return;
       this.iceRetaliationUsed = true;
       this.counterFlashT = 0.7;
-      const frostWeapon = this.weapons.find(w => w.def.id === 'mirrorWheel');
+      if (!SF.renderer.reducedMotion) SF.renderer.addShake(2.4, 0.16);
+      const frostWeapon = this.weapons.find(w => w.def.id === 'mirrorWheel' || w.def.id === 'frostLance');
       if (frostWeapon) frostWeapon.frostEmpowered = true;
       const spec = weapon.scaledSpec(this);
-      const damage = weapon.rollDamage(spec.damage, this);
+      const damage = weapon.rollDamage(spec.damage, this) * (1 + (this.stats.counterDamage || 0));
       const isSuper = !!weapon.def.super;
       const attacker = source.attacker && typeof source.attacker.x === 'number' ? source.attacker : null;
       const centerX = attacker ? attacker.x : (typeof source.x === 'number' ? source.x : this.x);
@@ -442,8 +358,7 @@
       this.heat = 0;
       this.heatGateT = 0;
       this.fireOverdriveT = 0;
-      this.armorShockCharge = 0;
-      this.shieldDiscEmpowered = false;
+      this.phaseInvulnT = 0; this.cycleInvulnCd = 0; this.counterFlashT = 0;
       for (const w of this.weapons) {
         w.charges = 0; w.chargeT = 0; w.frostEmpowered = false;
       }
@@ -456,6 +371,48 @@
       if (!silent) SF.particles.floatText(this.x, this.y - 12, `+${n}`, { color: SF.palette.css('hero0'), size: 8 });
     }
 
+    get frostAuraState() {
+      if (!this.traits.cycleInvuln || this.dead) return null;
+      if (this.phaseInvulnT > 0) return 'active';
+      return this.cycleInvulnCd <= 0 && this.weaponLockT <= 0 ? 'ready' : null;
+    }
+
+    drawFrostAura(ctx, s) {
+      const state = this.frostAuraState, R = SF.renderer, pal = SF.palette;
+      if (!state && this.counterFlashT <= 0) return;
+      const motion = !R.reducedMotion, time = motion ? this.visT : 0;
+      if (state) R.glow(this.x, this.y, state === 'active' ? 26 : 21, 'ice1',
+        state === 'active' ? 0.38 : 0.14 + (0.5 + 0.5 * Math.sin(time * 2.8)) * 0.07);
+      ctx.save(); ctx.translate(s.x, s.y);
+      if (state) {
+        const active = state === 'active', pulse = 0.5 + 0.5 * Math.sin(time * 2.8);
+        for (let i = 0; i < 6; i++) {
+          // 就绪的冰晶贴身缓慢呼吸；开启时收拢成锐利的六瓣冰甲。
+          ctx.save(); ctx.rotate(i * Math.PI / 3 + (active ? 0 : Math.sin(time * 0.7) * 0.1));
+          const radius = active ? 10.5 : 13 + Math.sin(time * 2 + i) * 0.7;
+          ctx.fillStyle = pal.css(active ? 'ice2' : 'ice1', active ? 0.85 : 0.4 + pulse * 0.22);
+          ctx.strokeStyle = pal.css('ice2', 0.8); ctx.lineWidth = 0.55;
+          ctx.beginPath(); ctx.moveTo(radius - 2, 0); ctx.lineTo(radius + 2, -1.6);
+          ctx.lineTo(radius + (active ? 7 : 5), 0); ctx.lineTo(radius + 2, 1.6); ctx.closePath(); ctx.fill(); ctx.stroke();
+          ctx.restore();
+        }
+      }
+      if (this.counterFlashT > 0) {
+        const progress = 1 - this.counterFlashT / 0.7, fade = (1 - progress) ** 2;
+        ctx.strokeStyle = pal.css('ice2', fade); ctx.lineWidth = 1.5;
+        const radius = motion ? 12 + 29 * (1 - (1 - progress) ** 3) : 18;
+        // 六向碎裂冲击从机体推出，短促且不覆盖敌弹；不产生伤害。
+        for (let i = 0; i < 6; i++) {
+          ctx.save(); ctx.rotate(i * Math.PI / 3);
+          ctx.beginPath(); ctx.moveTo(radius - 7, -3); ctx.lineTo(radius, 0); ctx.lineTo(radius - 7, 3); ctx.stroke();
+          ctx.fillStyle = pal.css('white', fade);
+          ctx.beginPath(); ctx.moveTo(radius + 1, 0); ctx.lineTo(radius + 5, -1);
+          ctx.lineTo(radius + 8, 0); ctx.lineTo(radius + 5, 1); ctx.closePath(); ctx.fill(); ctx.restore();
+        }
+      }
+      ctx.restore();
+    }
+
     draw(ctx) {
       const R = SF.renderer;
       const pal = SF.palette;
@@ -465,6 +422,7 @@
       const spriteName = 'player_' + this.char.id;
       const img = this.hurtFlash > 0 ? SF.sprites.glow(spriteName, pal.css('white'), 2) : SF.sprites.get(spriteName);
       const s = R.toScreen(this.x, this.y);
+      this.drawFrostAura(ctx, s);
       // 超载的贴身火焰只做表现，无接触伤害；敌弹仍在所有友方特效之上绘制。
       if (this.fireOverdriveT > 0) {
         R.glow(this.x, this.y, 22, 'fire1', 0.3);
@@ -504,32 +462,12 @@
         }
         ctx.restore();
       }
-      // 霜翎周期无敌进度：只显示角色头顶的小圈，不显示文字。
-      if (this.traits.cycleInvuln) {
-        const interval = SF.config.FIREFLY_CYCLE_INTERVAL;
-        const pct = this.phaseInvulnT > 0
-          ? 1
-          : 1 - Math.max(0, Math.min(1, this.cycleInvulnRingCd / Math.max(0.001, this.cycleInvulnRingMax || interval)));
-        ctx.save();
-        ctx.strokeStyle = pal.css('ice1', 0.22);
-        ctx.lineWidth = 0.6;
-        ctx.beginPath(); ctx.arc(s.x, s.y - 16, 2.1, 0, Math.PI * 2); ctx.stroke();
-        ctx.strokeStyle = pal.css(this.phaseInvulnT > 0 ? 'ice2' : 'ice1', this.phaseInvulnT > 0 ? 0.95 : 0.8);
-        ctx.lineWidth = this.phaseInvulnT > 0 ? 0.8 : 0.6;
-        ctx.beginPath(); ctx.arc(s.x, s.y - 16, 2.1, -Math.PI / 2, -Math.PI / 2 + Math.PI * 2 * pct); ctx.stroke();
-        ctx.restore();
-      }
-      // 护盾环
-      if (this.shield > 0) {
-        R.strokeCircle(this.x, this.y, 9, pal.css('gold'), 1, 0.6);
-      }
       // 武器停滞（BOSS2 深渊停滞）：灰色断链环 = 当前无法攻击/蓄力
       if (this.weaponLockT > 0) {
         const pulse = 0.5 + 0.5 * Math.sin(this.visT * 10);
         ctx.save(); ctx.setLineDash([3, 3]);
         R.strokeCircle(this.x, this.y, 12 + pulse, pal.css('uiDim'), 1, 0.7);
         ctx.restore();
-        SF.font.drawText(ctx, '停滞 ' + this.weaponLockT.toFixed(1) + 's', s.x, s.y + 17, {size: 6, color: 'silver', align: 'center'});
       }
     }
   }

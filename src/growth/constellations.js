@@ -1,15 +1,16 @@
 /* ============================================================
  * constellations.js — 机体专精矩阵（保留旧内部 ID，兼容存档和接口）
  * 升级获得专精点，激活节点获得局内加成。
- * 焚灭 / 霜返 / 壁垒 / 磁轨，对应火焰 / 冰霜 / 重装 / 电磁机体。
- * 本系消耗 ×1，其它系 ×2（见 player.starCost）。壁垒数值集中在 data/config.js。
+ * 焚灭 / 霜返 / 磁轨，对应火焰 / 冰霜 / 电磁机体。
+ * 本系消耗 ×1，其它系 ×2（见 player.starCost）。
  * 数值基准：全图加成已整体减半（后续新增节点也按此量级设计）
- * 费用基准：全图 cost 已整体翻倍（校准「终盘点满本系 + 少量异家」——翻倍前 6 分钟就能点满本系）
+ * 每系 8 节点、总费 30；新增节点各 5 点，霜返减冷却分散在成长路线中。
  * 每个节点有前置依赖（需先点亮相邻父节点）
  * ============================================================ */
 (function () {
   'use strict';
   const SF = (window.SF = window.SF || {});
+  const extra = SF.config.MATRIX_EXTENSIONS;
 
   // id, name, 专精系归属, 坐标(0-1 相对布局), 效果, cost, 前置
   SF.constellations = {
@@ -26,37 +27,31 @@
       fx: { damageMul: 0.06, areaMul: 0.075 }, desc: '武器伤害 +6% 爆炸范围 +7.5%' },
     orion_e:      { name: '焚灭协议', con: 'orion', x: 0.20, y: 0.74, cost: 6, req: 'orion_c', req2: 'orion_d',
       fx: { damageMul: 0.10 }, desc: '所有武器伤害 +10%' },
+    orion_f:      { name: '熔火校准', con: 'orion', cost: extra.orion.cost, req: 'orion_e',
+      fx: extra.orion.f, desc: '火系武器直伤 +6%' },
+    orion_g:      { name: '热域拓展', con: 'orion', cost: extra.orion.cost, req: 'orion_f',
+      fx: extra.orion.g, desc: '火系武器范围 +8%' },
 
     // ---------- 霜返矩阵 · 冰霜防反 ----------
     cygnus_root:  { name: '相变护层', con: 'cygnus', x: 0.70, y: 0.30, cost: 2, req: null,
-      fx: { phaseInvulnBonus: 0.1 }, desc: '霜翎周期防反窗口 +0.1 秒' },
+      fx: SF.config.FROST_SPECIALIZATION.root, desc: '冰系攻击范围 +5%'  },
     cygnus_a:     { name: '霜裂刻痕', con: 'cygnus', x: 0.60, y: 0.42, cost: 2, req: 'cygnus_root',
       fx: { iceDmg: 0.10 }, desc: '冰系武器伤害 +10%' },
     cygnus_b:     { name: '冷凝修复', con: 'cygnus', x: 0.80, y: 0.42, cost: 2, req: 'cygnus_root',
       fx: { regen: 0.3 }, desc: '每秒回复生命 0.3' },
-    cygnus_c:     { name: '反制延展', con: 'cygnus', x: 0.56, y: 0.58, cost: 4, req: 'cygnus_a',
-      fx: { phaseInvulnBonus: 0.2 }, desc: '霜翎周期防反窗口 +0.2 秒' },
+    cygnus_f:     { name: '霜息回流', con: 'cygnus', cost: extra.cygnus.cost, req: 'cygnus_a',
+      fx: extra.cygnus.f, desc: '霜翎主动防反冷却 -3 秒；判定窗口仍为 0.2 秒' },
+    cygnus_c:     { name: '反制增幅', con: 'cygnus', x: 0.56, y: 0.58, cost: 4, req: 'cygnus_f',
+      fx: SF.config.FROST_SPECIALIZATION.counter, desc: '霜翎防反冰域伤害 +15%'  },
     cygnus_d:     { name: '霜影推进', con: 'cygnus', x: 0.74, y: 0.58, cost: 4, req: 'cygnus_b',
       fx: { speed: 4, invulnBonus: 0.15 }, desc: '移动速度 +4 受击无敌时间 +0.15 秒' },
-    cygnus_e:     { name: '极寒重启', con: 'cygnus', x: 0.66, y: 0.74, cost: 6, req: 'cygnus_c', req2: 'cygnus_d',
+    cygnus_g:     { name: '瞬凝回路', con: 'cygnus', cost: extra.cygnus.cost, req: 'cygnus_c',
+      fx: extra.cygnus.g, desc: '霜翎防反冷却再 -3 秒，最低 14 秒；窗口不变' },
+    cygnus_e:     { name: '极寒重启', con: 'cygnus', x: 0.66, y: 0.74, cost: 6, req: 'cygnus_g', req2: 'cygnus_d',
       fx: { revive: 1 }, desc: '死亡时原地复活一次（50% 生命）' },
 
-    // ---------- 壁垒矩阵 · 重装堡垒 ----------
-    cassia_root:  { name: '复层装甲', con: 'cassia', x: 0.50, y: 0.86, cost: 2, req: null,
-      fx: SF.config.ARMOR_SPECIALIZATION.root, desc: '固定减伤 +0.75' },
-    cassia_a:     { name: '承力骨架', con: 'cassia', x: 0.38, y: 0.78, cost: 2, req: 'cassia_root',
-      fx: SF.config.ARMOR_SPECIALIZATION.frame, desc: '最大生命 +8%（含工坊生命）' },
-    cassia_b:     { name: '备用电容', con: 'cassia', x: 0.62, y: 0.78, cost: 2, req: 'cassia_root',
-      fx: SF.config.ARMOR_SPECIALIZATION.capacitor, desc: '每 10 秒额外回复 2 护盾；其它机体也可获得' },
-    cassia_c:     { name: '抗冲衬层', con: 'cassia', x: 0.30, y: 0.90, cost: 4, req: 'cassia_a',
-      fx: SF.config.ARMOR_SPECIALIZATION.lining, desc: '固定减伤 +0.75' },
-    cassia_d:     { name: '应急修复', con: 'cassia', x: 0.70, y: 0.90, cost: 4, req: 'cassia_b',
-      fx: SF.config.ARMOR_SPECIALIZATION.repair, desc: '生命低于 50% 时，每秒回复 0.8 生命' },
-    cassia_e:     { name: '坚壁阵列', con: 'cassia', x: 0.50, y: 0.96, cost: 6, req: 'cassia_c', req2: 'cassia_d',
-      fx: SF.config.ARMOR_SPECIALIZATION.bulwark, desc: '有护盾时减伤 +1.5；每次护盾回复再 +1' },
-
     // ---------- 磁轨矩阵 · 电磁蓄能与跨系耦合 ----------
-    // 扩为 6 节点对齐其它本系（总费 20）：三共鸣 + 雷系专精 + 电磁炮蓄力专精
+    // 原六节点保留，雷系专精后延伸两枚节点。
     nexus_core:   { name: '能量枢纽', con: 'nexus', x: 0.50, y: 0.55, cost: 4, req: null,
       fx: { areaMul: 0.05 }, desc: '攻击范围 +5%' },
     nexus_fire:   { name: '热能耦合', con: 'nexus', x: 0.44, y: 0.46, cost: 4, req: 'nexus_core',
@@ -69,13 +64,16 @@
       fx: { boltDmg: 0.08 }, desc: '雷系武器伤害 +8%' },
     nexus_b:      { name: '超导线圈', con: 'nexus', x: 0.60, y: 0.66, cost: 2, req: 'nexus_core',
       fx: { chargeRed: 0.08 }, desc: '电磁炮蓄力时间 -8%' },
+    nexus_f:      { name: '电弧聚焦', con: 'nexus', cost: extra.nexus.cost, req: 'nexus_bolt', req2: 'nexus_a',
+      fx: extra.nexus.f, desc: '雷系武器伤害 +6%' },
+    nexus_g:      { name: '磁场延展', con: 'nexus', cost: extra.nexus.cost, req: 'nexus_f', req2: 'nexus_b',
+      fx: extra.nexus.g, desc: '雷系武器范围 +8%' },
   };
 
   // 专精系分组元数据（渲染用；home 标注对应角色本系）
   SF.constellationMeta = {
     orion:  { name: '焚灭矩阵', color: 'fire1', style: '火焰', pilot: '焰锋' },
     cygnus: { name: '霜返矩阵', color: 'ice1', style: '冰霜', pilot: '霜翎' },
-    cassia: { name: '壁垒矩阵', color: 'armor0', style: '重装', pilot: '铁壁' },
     nexus:  { name: '磁轨矩阵', color: 'bolt0', style: '电磁', pilot: '磁暴' },
   };
 

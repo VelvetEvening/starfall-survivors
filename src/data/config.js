@@ -6,6 +6,8 @@
   const SF = (window.SF = window.SF || {});
 
   SF.config = {
+    VERSION: 'v2.0',
+    PICKUP_RADII: { dust: 7, chest: 15, magnet: 13, heal: 13 },
     // ---------- 一局结构 ----------
     RUN_DURATION: 480,        // 8 分钟总时长：4 分钟 BOSS1 + 4 分钟 BOSS2
     BOSS_SPAWN_AT: [240, 480], // BOSS 出现时刻（倒计时时钟）
@@ -84,7 +86,7 @@
     VEGA_HEAT: { threshold: 15, interval: 2, duration: 15, cooldownMul: 0.8, burnDurationMul: 2 },
     // 磁暴专属：普通单发收敛；满仓一炮 = 原单发 ×3.3，比原三发总量高 10%。
     // 其它机体使用同一武器时不应用这两个伤害倍率。
-    THUNDER_CAPACITOR: { normalDamageMul: 0.85, burstDamageMul: 3.3, burstSizeMul: 1.25 },
+    THUNDER_CAPACITOR: { normalDamageMul: 0.85, burstDamageMul: 3.3, burstSizeMul: 1.25, burstBeamLifeMul: 2.5 },
 
     // ---------- 冰冻易伤 / 冰蚀层数（敌方承伤乘区，统一在 Enemy.takeDamage 收口） ----------
     VULN_FREEZE_MUL: 1.2,      // 被冰冻后 5 秒内受伤倍率（对 BOSS 无效）
@@ -96,10 +98,17 @@
     ICE_RESONANCE_SLOW_MUL: 0.75,
     ICE_RESONANCE_FREEZE_MUL: 1.5,
 
-    // ---------- 霜翎周期无敌 / 受击反制冰域 ----------
-    FIREFLY_CYCLE_INTERVAL: 5,
-    FIREFLY_CYCLE_INVULN_BASE: 0.5,
-    FIREFLY_CYCLE_INVULN_CAP: 1,
+    // ---------- 霜翎主动防反 / 受击反制冰域 ----------
+    FIREFLY_CYCLE_INTERVAL: 20,
+    FIREFLY_COUNTER_MIN_COOLDOWN: 14,
+    FIREFLY_CYCLE_INVULN_BASE: 0.2,
+    FIREFLY_CYCLE_INVULN_CAP: 0.2,
+    FROST_SPECIALIZATION: { root: { iceAreaMul: 0.05 }, counter: { counterDamage: 0.15 } },
+    MATRIX_EXTENSIONS: {
+      orion: { cost: 5, f: { fireDmg: 0.06 }, g: { fireAreaMul: 0.08 } },
+      cygnus: { cost: 5, f: { frostCounterReduction: 3 }, g: { frostCounterReduction: 3 } },
+      nexus: { cost: 5, f: { boltDmg: 0.06 }, g: { boltAreaMul: 0.08 } },
+    },
     FIREFLY_ICE_RETALIATE_TICK: 3,
     FIREFLY_ICE_RETALIATE_BASE_RADIUS: 24,
     FIREFLY_ICE_RETALIATE_LEVEL_RADIUS: 3,
@@ -109,28 +118,11 @@
     FIREFLY_ICE_RETALIATE_SUPER_LIFE: 5,
     FIREFLY_ICE_RETALIATE_CENTER_MUL: 2,
     FIREFLY_FROST_MAX_HITS: 3, // 同一发强化霜棱弹对每个目标的冰爆伤害/控制次数上限
-    MISSILE_ICE_DAMAGE_MUL: 0.5, // 导弹系抗冰灼烧：冰伤减半并清除/免疫冰系控制与冰蚀
 
     // ---------- 玩家 ----------
     INVULN_TIME: 0.8,          // 受击无敌
     PICKUP_RADIUS_BASE: 42,    // 拾取吸附半径
     XP_MAGNET_SPEED: 320,
-    SHIELD_CAP: 10,            // 护盾上限（铁壁特质与壁垒矩阵共用）
-    SHIELD_REGEN_AMT: 5,       // 铁壁特质护盾回复量（每 10 秒）
-    SHIELD_REGEN_INTERVAL: 10,
-    COLLISION_GUARD: { damageTakenMul: 0.5, damagePerShieldLevel: 5, knockback: 180 },
-    // 铁壁：护盾实吸伤害计能，受击时满值且冷却就绪才释放；生命伤害不计能。
-    ARMOR_SHOCK: { threshold: 12, cooldown: 1.2, radius: 86, damage: 28, knockback: 72 },
-    EMERGENCY_REPAIR_HP_RATIO: 0.5,
-    // 壁垒矩阵：沿用 20 点本系总价与 10 点护盾上限，替换原经营收益。
-    ARMOR_SPECIALIZATION: {
-      root: { armor: 0.75 },
-      frame: { maxHpMul: 0.08 },
-      capacitor: { shieldEvery: 10, shieldAmt: 2 },
-      lining: { armor: 0.75 },
-      repair: { emergencyRegen: 0.8 },
-      bulwark: { shieldArmor: 1.5, shieldAmt: 1 },
-    },
     FIREFLY_SPEED_BOOST: 1.35, // 霜翎受击加速倍率（被动文案同步）
 
     // ---------- 掉落补充 ----------

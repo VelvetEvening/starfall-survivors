@@ -85,7 +85,6 @@
       const pl = game.player;
       pl.weaponLockT = Math.max(pl.weaponLockT, A.duration); // 不缩短仍在进行的停滞
       SF.particles.ring(pl.x, pl.y, { color: 'uiWarn', maxR: 34, life: 0.6, width: 2 });
-      SF.particles.floatText(pl.x, pl.y - 16, `⚠ 武器停滞 ${A.duration} 秒！`, { color: SF.palette.css('uiWarn'), size: 10, life: 1.2 });
       SF.audio.sfx.bossWarn();
       return A.cd;
     },

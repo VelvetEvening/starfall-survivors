@@ -1,4 +1,4 @@
-/* Offline Chromium review of all four characters. Staged screenshots are fixtures,
+/* Offline Chromium review of all three characters. Staged screenshots are fixtures,
  * not playthroughs; real mouse/keyboard paths run separately in isolated storage.
  */
 'use strict';
@@ -7,7 +7,7 @@ const fs=require('node:fs');
 const path=require('node:path');
 const {pathToFileURL}=require('node:url');
 const {chromium}=require('playwright');
-const ROOT=path.resolve(__dirname,'..'),OUT=path.join(ROOT,'gui-test-screenshots','characters');
+const ROOT=path.resolve(__dirname,'..'),OUT=path.join(ROOT,'gui-test-screenshots','v2.0/characters');
 fs.mkdirSync(OUT,{recursive:true});
 (async()=>{
   const browser=await chromium.launch({headless:true}),results=[],errors=[];
@@ -93,7 +93,7 @@ fs.mkdirSync(OUT,{recursive:true});
       else await clickAt(480-layout.x0-layout.cardW/2,layout.y0+60);
       await page.waitForFunction(()=>SF.game.state==='playing'&&SF.game.player.hasWeapon('nuke'));
       results.push({name:`${size} 四张进化卡完整显示，第四项键鼠可选`,layout});
-      for(const char of ['vega','firefly','thunder','dawn']) {
+      for(const char of ['vega','firefly','thunder']) {
         await page.evaluate(char=>{
           const g=SF.game;g.update=SF.Game.prototype.update;g.openCharSelect();
           g.panel.sel=g.panel.ids.indexOf(char);g.panel.showPassive=true;
@@ -107,7 +107,7 @@ fs.mkdirSync(OUT,{recursive:true});
       }
       for(const [char,stages] of [
         ['vega',['charging','ready','active','stasis']],['thunder',['charging','ready','burst','beam']],
-        ['dawn',['charging','burst']],['firefly',['window','ready','impact']],
+['firefly',['window','ready','impact']],
       ]) for(const stage of stages) {
         const detail=await page.evaluate(({char,stage})=>{
           const g=SF.game;g.startRun(char,'normal');g.update=()=>{};
@@ -118,7 +118,6 @@ fs.mkdirSync(OUT,{recursive:true});
           let w;
           if(char==='vega')w=setWeapon('blade',6);
           if(char==='thunder')w=setWeapon(stage==='beam'?'tempest':'chain',stage==='beam'?4:6);
-          if(char==='dawn')w=setWeapon('shieldDisc',4);
           if(char==='firefly'){w=setWeapon('mirrorWheel',6);pl.addWeapon('orb',4);pl.weapons[1].owner=pl;}
           const enemies=[];
           for(let i=0;i<6;i++) {
@@ -143,12 +142,8 @@ fs.mkdirSync(OUT,{recursive:true});
               else g.lightning.forEach(l=>l.t=0.06);
             }
           }
-          if(char==='dawn') {
-            pl.armorShockCharge=stage==='charging'?9:10;pl.shield=stage==='charging'?4:2;pl.shieldTimer=7;
-            if(stage==='burst'){pl.takeDamage(4,{game:g});SF.particles.update(0.12);}
-          }
           if(char==='firefly') {
-            pl.phaseInvulnT=0.5;pl.cycleInvulnCd=5;
+            pl.activateFrostCounter();
             if(stage!=='window')pl.takeDamage(5,{game:g,attacker:enemies[0]});
             if(stage==='impact'){w.fire(g);advance(0.52);}
           }
@@ -167,21 +162,6 @@ fs.mkdirSync(OUT,{recursive:true});
       }
     }
     await page.setViewportSize({width:1440,height:810});
-    for(const empowered of [false,true]) {
-      await page.evaluate(empowered=>{
-        const g=SF.game;g.startRun('dawn','normal');g.update=()=>{};
-        const p=g.player;p.weapons=[new SF.WeaponInstance(SF.weapons.shieldDisc,4)];
-        const w=p.weapons[0];w.owner=p;p.shieldDiscEmpowered=empowered;
-        SF.renderer.cam.x=0;SF.renderer.cam.y=0;
-        for(const y of [-15,0,15])g.enemies.spawnAt('grub',55,y,1000,0);
-        w.fire(g);w.shieldSwing.t=0.1;
-      },empowered);
-      await shot('desktop-shield-swing-'+(empowered?'empowered':'normal'));
-      await page.setViewportSize({width:390,height:844});
-      await shot('small-shield-swing-'+(empowered?'empowered':'normal'));
-      await page.setViewportSize({width:1440,height:810});
-      results.push({name:'盾盘定向盾面与扇形波纹',empowered});
-    }
     const flameAudit=await page.evaluate(()=>{
       const g=SF.game;g.startRun('vega','normal');g.update=()=>{};g.player.weapons=[];
       SF.renderer.cam.x=0;SF.renderer.cam.y=0;

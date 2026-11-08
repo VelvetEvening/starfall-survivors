@@ -8,7 +8,7 @@ const fs = require('node:fs');
 const path = require('node:path');
 const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(ROOT, 'gui-test-screenshots', 'feedback-audio');
+const OUT = path.join(ROOT, 'gui-test-screenshots', 'v2.0/audio');
 const source = fs.readFileSync(path.join(ROOT, 'src/core/audio.js'), 'utf8');
 fs.mkdirSync(OUT, { recursive: true });
 
@@ -71,7 +71,7 @@ fs.mkdirSync(OUT, { recursive: true });
       SF.audio.setMuted(true);
       const before = audioAudit.starts.length;
       SF.audio.sfx.iceRetaliate();
-      for (const effect of ['heatReady','fireOverdrive','capacitorReady','railBurst','armorShock']) SF.audio.sfx[effect]();
+      for (const effect of ['heatReady','fireOverdrive','capacitorReady','railBurst']) SF.audio.sfx[effect]();
       return { before, after: audioAudit.starts.length };
     });
     assert.equal(muteCheck.before, muteCheck.after);
@@ -105,7 +105,8 @@ fs.mkdirSync(OUT, { recursive: true });
       { mode: 'effect', effect: 'fireOverdrive', duration: 1.2, filename: '05-fire-overdrive.wav' },
       { mode: 'effect', effect: 'capacitorReady', duration: 1.2, filename: '06-capacitor-ready.wav' },
       { mode: 'effect', effect: 'railBurst', duration: 1.2, filename: '07-rail-burst.wav' },
-      { mode: 'effect', effect: 'armorShock', duration: 1.2, filename: '08-armor-shock.wav' },
+      { mode: 'effect', effect: 'shootBolt', duration: 1.2, filename: '08-rail-discharge.wav' },
+      { mode: 'effect', effect: 'laserStart', duration: 1.2, filename: '09-laser-discharge.wav' },
     ]) {
       const offlinePage = await browser.newPage();
       offlinePage.on('pageerror', error => errors.push(error.message));

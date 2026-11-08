@@ -46,6 +46,15 @@ async function test(name, fn) {
     assert.equal(SF.save.profile.charUpgrades.vega.weapon, 5);
     assert.equal(SF.save.profile.charUpgrades.thunder.hp, 0);
   });
+  await test('v2 退役铁壁只返还一次工坊投入，保留历史并拒绝继续购买', async () => {
+    const {SF,storage}=fixture({currency:100,bestScore:900,charUpgrades:{dawn:{hp:5,speed:2,dmg:1,weapon:0}}});
+    await SF.save.init();assert.equal(SF.save.profile.currency,5350);
+    assert.equal(await SF.save.buyCharUpgrade('dawn','hp'),false);
+    await SF.save.update(p=>{p.currency-=50;});
+    const again=fixture(JSON.parse(storage.raw));await again.SF.save.init();
+    assert.equal(again.SF.save.profile.currency,5300);assert.equal(again.SF.save.profile.charUpgrades.dawn.hp,5);
+    assert.equal(again.SF.save.profile.unlockedChars.includes('dawn'),false);
+  });
   await test('分难度纪录反复保存和重载不串桶，最高分兼容字段仍更新', async () => {
     for (const difficulty of ['easy', 'hard']) {
       const { SF, storage } = fixture(); await SF.save.init();
@@ -127,10 +136,10 @@ async function test(name, fn) {
     const { SF, storage } = fixture({ currency: 100 }); await SF.save.init();
     await Promise.all([
       SF.save.recordRun({ score: 10, time: 10, dustEarned: 100, difficulty: 'hard' }),
-      SF.save.buyCharUpgrade('dawn', 'hp'),
+      SF.save.buyCharUpgrade('thunder', 'hp'),
     ]);
     assert.equal(SF.save.profile.currency, 50); assert.equal(SF.save.profile.totalRuns, 1);
-    assert.equal(SF.save.profile.charUpgrades.dawn.hp, 1);
+    assert.equal(SF.save.profile.charUpgrades.thunder.hp, 1);
     assert.deepEqual(JSON.parse(storage.raw), plain(SF.save.profile));
   });
   await test('四张进化卡都在画面内，数字 4 和第四张卡鼠标命中一致', async () => {
@@ -147,7 +156,7 @@ async function test(name, fn) {
     second.update(1 / 60); second.pick(3); // 已选的面板不能二次发奖。
     assert.deepEqual(picked, [3, 3]);
   });
-  const out = path.join(ROOT, 'gui-test-screenshots', 'balance-v1'); fs.mkdirSync(out, { recursive: true });
+  const out = path.join(ROOT, 'gui-test-screenshots', 'v2.0'); fs.mkdirSync(out, { recursive: true });
   fs.writeFileSync(path.join(out, 'local-v1-tests.json'), JSON.stringify({ checks: results.length, results }, null, 2));
   console.log(`LOCAL V1: ${results.length} checks passed`);
 })().catch(error => { console.error(error); process.exitCode = 1; });

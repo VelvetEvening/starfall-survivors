@@ -15,6 +15,7 @@
   const shake = { t: 0, dur: 0, mag: 0, x: 0, y: 0 };
   const lights = new Map();
   const spriteMips = new WeakMap();
+  let reducedMotion = false;
 
   function init(canvas) {
     screenCv = canvas;
@@ -24,6 +25,9 @@
     ctx = worldCtx;
     resize();
     window.addEventListener('resize', resize);
+    const motion = window.matchMedia('(prefers-reduced-motion: reduce)');
+    reducedMotion = motion.matches;
+    motion.addEventListener('change', e => { reducedMotion = e.matches; });
   }
 
   function resize() {
@@ -205,6 +209,26 @@
     glowScreen(s.x, s.y, radius, color, alpha);
   }
 
+  // 屏幕逻辑坐标下的纯表现电弧；不调用随机数，避免绘制频率改变战斗随机流。
+  function electricArc(target, x1, y1, x2, y2, { time = 0, amplitude = 3, width = 1, alpha = 1, seed = 0 } = {}) {
+    const dx = x2 - x1, dy = y2 - y1, length = Math.hypot(dx, dy);
+    if (!length) return;
+    const steps = Math.min(64, Math.max(4, Math.ceil(length / 7)));
+    const nx = -dy / length, ny = dx / length, frame = reducedMotion ? 0 : Math.floor(time * 12);
+    target.save(); target.lineJoin = 'bevel'; target.lineCap = 'butt';
+    target.beginPath(); target.moveTo(x1, y1);
+    for (let i = 1; i < steps; i++) {
+      const noise = Math.sin(i * 17.17 + seed * 7.13 + frame * 2.31) * 43758.5453;
+      const offset = ((noise - Math.floor(noise)) * 2 - 1) * amplitude;
+      target.lineTo(x1 + dx * i / steps + nx * offset, y1 + dy * i / steps + ny * offset);
+    }
+    target.lineTo(x2, y2);
+    for (const [w, color, opacity] of [[width + 2.2, 'bolt0', 0.22], [width, 'bolt1', 0.9], [width * 0.42, 'white', 1]]) {
+      target.lineWidth = w; target.strokeStyle = SF.palette.css(color, alpha * opacity); target.stroke();
+    }
+    target.restore();
+  }
+
   function vignette(strength = 0.45, color = 'bg0') {
     const g = ctx.createRadialGradient(VW / 2, VH / 2, 65, VW / 2, VH / 2, 265);
     g.addColorStop(0, SF.palette.css(color, 0));
@@ -231,9 +255,10 @@
   SF.renderer = {
     init, begin, beginUI, end, resize, cam, addShake, toScreen,
     drawSprite, drawSpriteScreen, spriteSource, strokeCircle, fillCircle,
-    glow, glowScreen, glowTexture, vignette,
+    glow, glowScreen, glowTexture, electricArc, vignette,
     get ctx() { return ctx; }, get width() { return VW; }, get height() { return VH; },
     get time() { return clock; }, get density() { return density; },
+    get reducedMotion() { return reducedMotion; },
     get worldDensity() { return worldDensity; }, get displayDensity() { return displayDensity; },
   };
 })();

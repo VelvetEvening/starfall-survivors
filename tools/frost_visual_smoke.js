@@ -6,7 +6,7 @@ const path = require('node:path');
 const { pathToFileURL } = require('node:url');
 const { chromium } = require('playwright');
 const ROOT = path.resolve(__dirname, '..');
-const OUT = path.join(ROOT, 'gui-test-screenshots', 'frost-projectile');
+const OUT = path.join(ROOT, 'gui-test-screenshots', 'v2.0/frost');
 
 (async () => {
   fs.mkdirSync(OUT, { recursive: true });
@@ -33,7 +33,7 @@ const OUT = path.join(ROOT, 'gui-test-screenshots', 'frost-projectile');
           const enemies = [-35, 0, 35, 140].map(x => g.enemies.spawnAt('grub', x, 0, 100, 0));
           for (const y of [-42, 42]) g.enemies.spawnAt('crab', 105, y, 100, 0);
           if (stage === 'empowered' || stage === 'ready') {
-            pl.phaseInvulnT = 0.5;
+            pl.activateFrostCounter();
             pl.takeDamage(5, { game: g, attacker: enemies[0] });
             SF.projectiles.clear();
           }

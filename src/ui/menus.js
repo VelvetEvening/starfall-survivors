@@ -63,8 +63,7 @@
       ctx.strokeStyle=pal.css('uiAccent',0.3);ctx.beginPath();ctx.ellipse(0,0,111,39,0,0.3,1.65);ctx.stroke();ctx.restore();
       ctx.strokeStyle=pal.css('metalLight',0.15);ctx.lineWidth=0.5;
       ctx.beginPath();ctx.moveTo(257,214);ctx.lineTo(291,214);ctx.lineTo(308,197);ctx.stroke();
-      SF.font.drawText(ctx,'SECTOR 07 / 星穹边境',260,222,{size:6,color:'uiDim'});
-      SF.font.drawText(ctx,'航行许可  /  ACTIVE',448,28,{size:6,color:'uiDim',align:'right'});
+      SF.font.drawText(ctx,SF.config.VERSION,448,28,{size:6,color:'uiDim',align:'right'});
       SF.font.drawText(ctx,'✦',30,23,{size:13,color:'uiAccent'});
       SF.font.drawText(ctx,'STARFALL  /  深空航行计划',48,28,{size:7,color:'silver',weight:'600'});
       SF.font.drawText(ctx,'星穹幸存者',29,65,{size:29,color:'white',weight:'650'});
@@ -219,8 +218,8 @@
       this._passiveCloseBounds={x:px+pw-27,y:py+8,w:19,h:18};
       ctx.fillStyle=SF.palette.css('bg0',0.8);ctx.fillRect(0,0,480,270);
       SF.widgets.panel(ctx, px, py, pw, ph, { alpha: 1, accent: true });
-      SF.sprites.draw(ctx,'player_'+c.id,px+30,py+30,c.id==='dawn'?46:37);
-      SF.font.drawText(ctx, 'CHARACTER TRAIT / '+c.name, px+59, py+12, {size:6,color:'uiAccent'});
+      SF.sprites.draw(ctx,'player_'+c.id,px+30,py+30,37);
+      SF.font.drawText(ctx, c.name, px+59, py+12, {size:6,color:'uiAccent'});
       SF.font.drawText(ctx, c.passive.name, px+59, py+27, {size:15,color:'white',weight:'600'});
       const close=this._passiveCloseBounds;
       SF.widgets.button(ctx,close.x,close.y,close.w,close.h,'×',{small:true});
@@ -236,7 +235,7 @@
       const R = SF.renderer;
       const W = R.width, H = R.height;
       const pal = SF.palette;
-      SF.font.drawText(ctx, 'H A N G A R  /  选择战机', W / 2, 21, { size: 7, color: 'uiAccent', align: 'center' });
+      SF.font.drawText(ctx, '选择战机', W / 2, 21, { size: 7, color: 'uiAccent', align: 'center' });
       SF.font.drawText(ctx, '你的下一次远征，从这里开始', W / 2, 42, { size: 15, color: 'white', align: 'center', weight: '600' });
       SF.widgets.button(ctx,430,8,42,18,'返回',{small:true});
 
@@ -261,7 +260,7 @@
         R.glowScreen(x + cw / 2, y0 + 34, 34, c.color, sel ? 0.32 : 0.12);
         ctx.strokeStyle = pal.css(c.color, 0.18); ctx.lineWidth = 0.5;
         ctx.beginPath(); ctx.ellipse(x + cw/2, y0 + 48, 23, 6, 0, 0, Math.PI*2); ctx.stroke();
-        const hullSize = id === 'dawn' ? (sel ? 51 : 47) : (sel ? 41 : 37);
+        const hullSize = (sel ? 41 : 37);
         SF.sprites.draw(ctx, 'player_' + id, x + cw/2, y0 + 29, hullSize);
         SF.font.drawText(ctx, c.name, x + cw / 2, y0 + 58, { size: 12, color: sel ? 'white' : 'uiText', align: 'center' });
         SF.font.drawText(ctx, c.title, x + cw / 2, y0 + 74, { size: 7, color: c.color, align: 'center' });
@@ -269,7 +268,7 @@
         const upg = (SF.save.profile && SF.save.profile.charUpgrades && SF.save.profile.charUpgrades[id]) || {};
         const upHp = c.bonus.maxHp * (upg.hp || 0) * c.upgradeStats.hp.per;
         const upSpd = (upg.speed || 0) * c.upgradeStats.speed.per;
-        SF.font.drawText(ctx, `生命 ${Math.round(c.bonus.maxHp + upHp)}  速度 ${c.bonus.speed + upSpd}`, x + cw / 2, y0 + 88, { size: 8, color: 'uiDim', align: 'center' });
+        SF.font.drawText(ctx, `生命 ${Math.round(c.bonus.maxHp + upHp)}  速度 ${Number((c.bonus.speed + upSpd).toFixed(1))}`, x + cw / 2, y0 + 88, { size: 8, color: 'uiDim', align: 'center' });
         SF.font.drawText(ctx, `伤害 ×${((c.dmgMul || 1) * (1 + (upg.dmg || 0) * c.upgradeStats.dmg.per)).toFixed(2)}`, x + cw / 2, y0 + 98, { size: 8, color: 'gold', align: 'center' });
         // 工坊等级总览（含初始武器强化）
         const keys = Object.keys(c.upgradeStats);
@@ -407,8 +406,8 @@
           curTxt = `${Math.round(c.bonus.maxHp * (1 + lv * meta.per))} HP`;
           nextTxt = lv < cap ? `→ ${Math.round(c.bonus.maxHp * (1 + (lv + 1) * meta.per))}` : 'MAX';
         } else if (key === 'speed') {
-          curTxt = `${c.bonus.speed + lv * meta.per} SPD`;
-          nextTxt = lv < cap ? `→ ${c.bonus.speed + (lv + 1) * meta.per}` : 'MAX';
+          curTxt = `${Number((c.bonus.speed + lv * meta.per).toFixed(1))} SPD`;
+          nextTxt = lv < cap ? `→ ${Number((c.bonus.speed + (lv + 1) * meta.per).toFixed(1))}` : 'MAX';
         } else if (key === 'weapon') {
           curTxt = `入场 Lv.${SF.Player.startingWeaponLevel(lv)}`;
           nextTxt = lv < cap ? `→ 入场 Lv.${SF.Player.startingWeaponLevel(lv + 1)}` : 'MAX';
@@ -531,7 +530,7 @@
       const title = this.victory ? '✦ 胜 利 ✦' : '征 程 终 焉';
       const tcol = this.victory ? 'gold' : 'uiWarn';
       const k = SF.util.ease.outCubic(Math.min(1, this.t / 0.6));
-      SF.font.drawText(ctx, 'FLIGHT REPORT / 航行记录', W/2, 21, {size: 6.5, color: 'uiDim', align: 'center'});
+      SF.font.drawText(ctx, '航行记录', W/2, 21, {size: 6.5, color: 'uiDim', align: 'center'});
       SF.font.drawText(ctx, title, W / 2, 39 + (1 - k) * 8, { size: 24, color: tcol, align: 'center', alpha: clamp(k * 2, 0, 1), weight: '600' });
       SF.font.drawText(ctx, this.victory ? '深渊君王已陨落，星穹为你闪耀' : '星海无情，下次再来',
         W / 2, 70, { size: 8, color: 'uiDim', align: 'center' });

@@ -23,7 +23,7 @@
         pool.push({
           kind: 'evolve', ref: w, weight: 30,
           title: '✦ ' + SF.weapons[w.def.evolveTo].name,
-          sub: '超武进化！' + w.def.name + ' → 觉醒',
+          sub: SF.weapons[w.def.evolveTo].desc,
           icon: SF.weapons[w.def.evolveTo].icon, color: 'gold',
         });
       }
@@ -117,6 +117,7 @@
         if (!superDef || player.hasWeapon(superDef.id) || !w.canEvolve(player)) break;
         const idx = player.weapons.indexOf(w);
         const evolved = new SF.WeaponInstance(superDef, 1);
+        evolved.frostEmpowered = w.frostEmpowered;
         const chargeProgress = w.spec.charge ? w.chargeT / w.chargeDuration(player) : 0;
         player.weapons[idx] = evolved;
         player.recalcStats(); // 超武联动：对应被动每层 ×1.5 追溯生效
@@ -138,5 +139,13 @@
     SF.audio.sfx.confirm();
   }
 
-  SF.progression = { rollChoices, applyChoice };
+  function affinityFor(choice) {
+    const passive = choice.kind.startsWith('passive');
+    const id = typeof choice.ref === 'string' ? choice.ref : choice.kind === 'evolve' ? choice.ref?.def.evolveTo : choice.ref?.def.id;
+    const def = (passive ? SF.passives : SF.weapons)[id];
+    const element = def?.element || 'none';
+    const recipe = passive ? Object.values(SF.weapons).find(w => w.evolveWith === id) : null;
+    return { element, recipe, label: { fire: '火系', ice: '冰系', bolt: '雷系', none: '通用' }[element] };
+  }
+  SF.progression = { rollChoices, applyChoice, affinityFor };
 })();

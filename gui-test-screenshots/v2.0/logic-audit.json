@@ -1,0 +1,526 @@
+{
+  "results": [
+    {
+      "name": "焰锋：空场与非火系不计热",
+      "pass": true
+    },
+    {
+      "name": "blade：多弹、多敌、穿透共用一轮计热",
+      "pass": true
+    },
+    {
+      "name": "prism：多弹、多敌、穿透共用一轮计热",
+      "pass": true
+    },
+    {
+      "name": "missile：多弹、多敌、穿透共用一轮计热",
+      "pass": true
+    },
+    {
+      "name": "nuke：多弹、多敌、穿透共用一轮计热",
+      "pass": true
+    },
+    {
+      "name": "焰锋：15 格储存不自动释放，空格技能不附赠爆炸伤害",
+      "pass": true
+    },
+    {
+      "name": "焰锋：灼烧、蔓延、火海不回填热量",
+      "pass": true
+    },
+    {
+      "name": "焰锋：共享 2 秒间隔，被挡齐射后续接触不能补计热",
+      "pass": true
+    },
+    {
+      "name": "焰锋：致死命中计热，死敌和零伤害不计热",
+      "pass": true
+    },
+    {
+      "name": "焰锋：停滞保留储备与技能时间，超载弹不回填热量",
+      "pass": true
+    },
+    {
+      "name": "焰锋：多火武不能绕过间隔，满热命中不自动消费",
+      "pass": true
+    },
+    {
+      "name": "飞刃：首碰耗尽时消失，Lv.5 的额外穿透仍能命中下一个目标",
+      "pass": true
+    },
+    {
+      "name": "磁暴 chain Lv.1：未满仓一发 ×0.85，满仓单炮 ×3.3，严格消费存弹",
+      "pass": true
+    },
+    {
+      "name": "磁暴 chain Lv.6：未满仓一发 ×0.85，满仓单炮 ×3.3，严格消费存弹",
+      "pass": true
+    },
+    {
+      "name": "磁暴 tempest Lv.1：未满仓一发 ×0.85，满仓单炮 ×3.3，严格消费存弹",
+      "pass": true
+    },
+    {
+      "name": "磁暴 tempest Lv.4：未满仓一发 ×0.85，满仓单炮 ×3.3，严格消费存弹",
+      "pass": true
+    },
+    {
+      "name": "磁暴：同一步充满第三发再点击，立即打出聚能炮",
+      "pass": true
+    },
+    {
+      "name": "磁暴：满仓停止充能，空仓点击无效果，停滞的点击不会延迟偷发",
+      "pass": true
+    },
+    {
+      "name": "电磁贯穿：扫过线段含敌人体积，高速不漏敌，重叠大目标只结算一次",
+      "pass": true
+    },
+    {
+      "name": "其它机体的电磁炮伤害不受磁暴专属倍率影响",
+      "pass": true
+    },
+    {
+      "name": "磁暴：零/满工坊下两形态逐级伤害与爆发 DPS 不倒退",
+      "pass": true
+    },
+    {
+      "name": "电磁炮进化：保存两发与蓄力比例，使用进化后芯片加速；满仓仍可聚能",
+      "pass": true
+    },
+    {
+      "name": "霜翎：每窗一次反制，HUD 显示成功及一发穿透储备，停滞保留储备",
+      "pass": true
+    },
+    {
+      "name": "霜翎：密集敌群每个接触目标只爆一次，旁侧波及不递归，伤害有明确上界",
+      "pass": true
+    },
+    {
+      "name": "霜翎：强化冰弹对两位 Boss 不冻结，灼烧与冰蚀共存",
+      "pass": true
+    },
+    {
+      "name": "三机体：暂停冻结资源，死亡/重开清空储备，角色和存档 ID 保持不变",
+      "pass": true
+    },
+    {
+      "name": "三机体 × 零/满工坊 × 敌潮/双 Boss：18 场 90 秒战斗压力回归",
+      "pass": true
+    }
+  ],
+  "measurements": [
+    {
+      "weapon": "chain",
+      "level": 1,
+      "ordinary": 112.2,
+      "full": 435.59999999999997,
+      "oldThree": 396,
+      "ratio": 1.1
+    },
+    {
+      "weapon": "chain",
+      "level": 6,
+      "ordinary": 275.4,
+      "full": 1069.2,
+      "oldThree": 972,
+      "ratio": 1.1
+    },
+    {
+      "weapon": "tempest",
+      "level": 1,
+      "ordinary": 306,
+      "full": 1188,
+      "oldThree": 1080,
+      "ratio": 1.1
+    },
+    {
+      "weapon": "tempest",
+      "level": 4,
+      "ordinary": 550.8,
+      "full": 2138.4,
+      "oldThree": 1944,
+      "ratio": 1.1
+    }
+  ],
+  "scenarios": [
+    {
+      "char": "vega",
+      "workshop": false,
+      "encounter": "crowd",
+      "duration": 90,
+      "baseMaxHp": 80,
+      "hpProtected": true,
+      "hpDamage": 533.6543333325535,
+      "damage": 46602.640000000676,
+      "kills": 245,
+      "firstBurst": 33.833333333333336,
+      "peakEnemies": 30,
+      "peakShots": 8,
+      "bossHp": null,
+      "bossKilled": null,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 2,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "vega",
+      "workshop": false,
+      "encounter": "boss",
+      "duration": 49.35,
+      "baseMaxHp": 80,
+      "hpProtected": true,
+      "hpDamage": 193.59999999776483,
+      "damage": 24725.946666666656,
+      "kills": 4,
+      "firstBurst": 35.233333333333334,
+      "peakEnemies": 4,
+      "peakShots": 8,
+      "bossHp": -1.839999999983462,
+      "bossKilled": true,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 1,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "vega",
+      "workshop": false,
+      "encounter": "boss2",
+      "duration": 68.68333333333334,
+      "baseMaxHp": 80,
+      "hpProtected": true,
+      "hpDamage": 178.80000000074506,
+      "damage": 37074.93333333319,
+      "kills": 5,
+      "firstBurst": 44.05,
+      "peakEnemies": 5,
+      "peakShots": 6,
+      "bossHp": -32.933333333321784,
+      "bossKilled": true,
+      "forcedSecondPhase": true,
+      "fireOverdrives": 1,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "vega",
+      "workshop": true,
+      "encounter": "crowd",
+      "duration": 90,
+      "baseMaxHp": 120,
+      "hpProtected": true,
+      "hpDamage": 487.28440000116825,
+      "damage": 49115.04000000039,
+      "kills": 240,
+      "firstBurst": 37.2,
+      "peakEnemies": 29,
+      "peakShots": 8,
+      "bossHp": null,
+      "bossKilled": null,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 2,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "vega",
+      "workshop": true,
+      "encounter": "boss",
+      "duration": 45.166666666666664,
+      "baseMaxHp": 120,
+      "hpProtected": true,
+      "hpDamage": 182.39999999850988,
+      "damage": 23097.133333333306,
+      "kills": 4,
+      "firstBurst": 34.11666666666667,
+      "peakEnemies": 4,
+      "peakShots": 8,
+      "bossHp": -16.039999999992048,
+      "bossKilled": true,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 1,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "vega",
+      "workshop": true,
+      "encounter": "boss2",
+      "duration": 76.23333333333333,
+      "baseMaxHp": 120,
+      "hpProtected": true,
+      "hpDamage": 164.80000000074506,
+      "damage": 37477.733333333395,
+      "kills": 5,
+      "firstBurst": 43.983333333333334,
+      "peakEnemies": 5,
+      "peakShots": 8,
+      "bossHp": -61.266666666660555,
+      "bossKilled": true,
+      "forcedSecondPhase": true,
+      "fireOverdrives": 1,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "firefly",
+      "workshop": false,
+      "encounter": "crowd",
+      "duration": 90,
+      "baseMaxHp": 56,
+      "hpProtected": true,
+      "hpDamage": 494.7551333345473,
+      "damage": 56483.57879999991,
+      "kills": 240,
+      "firstBurst": null,
+      "peakEnemies": 32,
+      "peakShots": 3,
+      "bossHp": null,
+      "bossKilled": null,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 0,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "firefly",
+      "workshop": false,
+      "encounter": "boss",
+      "duration": 90,
+      "baseMaxHp": 56,
+      "hpProtected": true,
+      "hpDamage": 614.5999999977648,
+      "damage": 19391.568372000016,
+      "kills": 2,
+      "firstBurst": 40.11666666666667,
+      "peakEnemies": 7,
+      "peakShots": 3,
+      "bossHp": 6131.630459999971,
+      "bossKilled": false,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 0,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 1
+    },
+    {
+      "char": "firefly",
+      "workshop": false,
+      "encounter": "boss2",
+      "duration": 90,
+      "baseMaxHp": 56,
+      "hpProtected": true,
+      "hpDamage": 345.80000000074506,
+      "damage": 15487.795224000049,
+      "kills": 0,
+      "firstBurst": null,
+      "peakEnemies": 9,
+      "peakShots": 2,
+      "bossHp": 8703.188879999976,
+      "bossKilled": false,
+      "forcedSecondPhase": true,
+      "fireOverdrives": 0,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "firefly",
+      "workshop": true,
+      "encounter": "crowd",
+      "duration": 90,
+      "baseMaxHp": 84,
+      "hpProtected": true,
+      "hpDamage": 524.2707999944687,
+      "damage": 57269.222010000056,
+      "kills": 244,
+      "firstBurst": 80.01666666666667,
+      "peakEnemies": 31,
+      "peakShots": 3,
+      "bossHp": null,
+      "bossKilled": null,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 0,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 1
+    },
+    {
+      "char": "firefly",
+      "workshop": true,
+      "encounter": "boss",
+      "duration": 90,
+      "baseMaxHp": 84,
+      "hpProtected": true,
+      "hpDamage": 532.1999999992549,
+      "damage": 22947.929234999985,
+      "kills": 3,
+      "firstBurst": 60.05,
+      "peakEnemies": 7,
+      "peakShots": 3,
+      "bossHp": 5006.9840250000025,
+      "bossKilled": false,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 0,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 1
+    },
+    {
+      "char": "firefly",
+      "workshop": true,
+      "encounter": "boss2",
+      "duration": 90,
+      "baseMaxHp": 84,
+      "hpProtected": true,
+      "hpDamage": 415.2000000011176,
+      "damage": 17909.912294999984,
+      "kills": 0,
+      "firstBurst": null,
+      "peakEnemies": 9,
+      "peakShots": 2,
+      "bossHp": 7882.984275000008,
+      "bossKilled": false,
+      "forcedSecondPhase": true,
+      "fireOverdrives": 0,
+      "railBursts": 0,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "thunder",
+      "workshop": false,
+      "encounter": "crowd",
+      "duration": 90,
+      "baseMaxHp": 48,
+      "hpProtected": true,
+      "hpDamage": 722.4993333369493,
+      "damage": 51717.6000000008,
+      "kills": 182,
+      "firstBurst": 21.666666666666668,
+      "peakEnemies": 84,
+      "peakShots": 1,
+      "bossHp": null,
+      "bossKilled": null,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 0,
+      "railBursts": 4,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "thunder",
+      "workshop": false,
+      "encounter": "boss",
+      "duration": 90,
+      "baseMaxHp": 48,
+      "hpProtected": true,
+      "hpDamage": 424.79999999701977,
+      "damage": 19947.839999999942,
+      "kills": 1,
+      "firstBurst": 21.666666666666668,
+      "peakEnemies": 8,
+      "peakShots": 1,
+      "bossHp": 6001.920000000016,
+      "bossKilled": false,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 0,
+      "railBursts": 4,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "thunder",
+      "workshop": false,
+      "encounter": "boss2",
+      "duration": 90,
+      "baseMaxHp": 48,
+      "hpProtected": true,
+      "hpDamage": 242.40000000037253,
+      "damage": 13605.926400000044,
+      "kills": 0,
+      "firstBurst": 19.916666666666668,
+      "peakEnemies": 9,
+      "peakShots": 1,
+      "bossHp": 6396.892799999971,
+      "bossKilled": false,
+      "forcedSecondPhase": true,
+      "fireOverdrives": 0,
+      "railBursts": 3,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "thunder",
+      "workshop": true,
+      "encounter": "crowd",
+      "duration": 90,
+      "baseMaxHp": 72,
+      "hpProtected": true,
+      "hpDamage": 557.9548666644841,
+      "damage": 100989.89999999989,
+      "kills": 225,
+      "firstBurst": 21.666666666666668,
+      "peakEnemies": 82,
+      "peakShots": 1,
+      "bossHp": null,
+      "bossKilled": null,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 0,
+      "railBursts": 4,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "thunder",
+      "workshop": true,
+      "encounter": "boss",
+      "duration": 90,
+      "baseMaxHp": 72,
+      "hpProtected": true,
+      "hpDamage": 300.79999999701977,
+      "damage": 22888.800000000003,
+      "kills": 1,
+      "firstBurst": 21.666666666666668,
+      "peakEnemies": 8,
+      "peakShots": 1,
+      "bossHp": 4799.4000000000015,
+      "bossKilled": false,
+      "forcedSecondPhase": false,
+      "fireOverdrives": 0,
+      "railBursts": 4,
+      "armorShocks": 0,
+      "iceCounters": 0
+    },
+    {
+      "char": "thunder",
+      "workshop": true,
+      "encounter": "boss2",
+      "duration": 90,
+      "baseMaxHp": 72,
+      "hpProtected": true,
+      "hpDamage": 242.80000000074506,
+      "damage": 19489.73399999989,
+      "kills": 0,
+      "firstBurst": 19.916666666666668,
+      "peakEnemies": 9,
+      "peakShots": 1,
+      "bossHp": 6374.79600000002,
+      "bossKilled": false,
+      "forcedSecondPhase": true,
+      "fireOverdrives": 0,
+      "railBursts": 3,
+      "armorShocks": 0,
+      "iceCounters": 0
+    }
+  ]
+}

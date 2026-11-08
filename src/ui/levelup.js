@@ -76,7 +76,6 @@
 
       const chest = this.kind === 'chest' || this.kind === 'chest-evolve';
       SF.font.drawText(ctx, this.kind === 'chest-evolve' ? '选择超武进化' : chest ? '宝箱强化' : '星能觉醒', W / 2, y0 - 34, { size: 19, color: 'white', align: 'center', weight: '600' });
-      SF.font.drawText(ctx, this.kind === 'chest-evolve' ? 'CHEST EVOLUTION  /  选择一把武器觉醒' : chest ? 'CHEST REWARD  /  选择一次强化，继续你的远征' : 'LEVEL ' + this.game.level + '  /  选择一次强化，继续你的远征', W / 2, y0 - 11, { size: 7, color: 'starDust', align: 'center' });
 
       const k = SF.util.ease.outCubic(Math.min(1, this.openT / 0.22));
       for (let i = 0; i < n; i++) {
@@ -105,8 +104,11 @@
         const iconId = typeof c.ref === 'string' ? c.ref : c.kind === 'evolve' ? c.ref?.def.evolveTo : c.ref?.def.id;
         SF.sprites.draw(ctx, SF.sprites.icon(iconKind, iconId, c.icon), x + cardW/2, y + 34, 18);
         // 类型标签
-        const kindLabel = { weaponNew: '新武器', weaponUp: '武器升级', passiveNew: '新被动', passiveUp: '被动升级', evolve: '超武进化', dust: '补给' }[c.kind];
-        SF.font.drawText(ctx, kindLabel, x + 8, y + 8, { size: 6.5, color });
+        const affinity = SF.progression.affinityFor(c);
+        const kindLabel = { weaponNew: '新武器', weaponUp: '武器升级', passiveNew: '进化材料', passiveUp: '材料升级', evolve: '超武进化', dust: '补给' }[c.kind];
+        if (affinity.recipe) SF.sprites.draw(ctx, 'evolution_material', x + 11, y + 11, 11);
+        SF.font.drawText(ctx, kindLabel, x + (affinity.recipe ? 21 : 8), y + 8, { size: 6.5, color: affinity.recipe ? 'starDust' : color });
+        SF.sprites.draw(ctx, 'element_' + affinity.element, x + cardW - 28, y + 11, 12);
         // 标题
         SF.font.drawText(ctx, c.title, x + cardW / 2, y + 56, { size: 10, color: hovered ? 'white' : 'uiText', align: 'center', weight: '600' });
         // 完整描述按长度排版，不截掉进化条件或被动效果。
@@ -117,8 +119,11 @@
         SF.font.drawText(ctx, hovered ? '确认选择  →' : '选择强化', x + cardW/2, y + CARD_H - 13, {size: 7, color: hovered ? color : 'uiDim', align: 'center'});
         ctx.restore();
       }
+      const affinity = SF.progression.affinityFor(this.choices[this.sel]);
+      const relation = affinity.recipe ? affinity.label + '增益 · ' + affinity.recipe.name + '进化素材' : affinity.label + (affinity.element === 'none' ? '强化' : '武器');
+      SF.font.drawText(ctx, relation, W/2, y0 + CARD_H + 10, {size: 7.5, color:'silver', align:'center'});
       const keys = Array.from({ length: n }, (_, i) => i + 1).join(' / ');
-      SF.font.drawText(ctx, keys + ' 快捷选择   ·   ←→ 切换 / Enter 确认   ·   鼠标点击', W/2, y0 + CARD_H + 17, {size: 7, color: 'uiDim', align: 'center'});
+      SF.font.drawText(ctx, keys + ' 快捷选择   ·   ←→ 切换 / Enter 确认   ·   鼠标点击', W/2, y0 + CARD_H + 25, {size: 7, color: 'uiDim', align: 'center'});
     }
 
     drawWrapped(ctx, text, cx, y, maxW, maxLines) {

@@ -204,7 +204,7 @@
         const choices = evolutions.map(w => ({
           kind: 'evolve', ref: w, weight: 30,
           title: '✦ ' + SF.weapons[w.def.evolveTo].name,
-          sub: '超武进化！' + w.def.name + ' → 觉醒',
+          sub: SF.weapons[w.def.evolveTo].desc,
           icon: SF.weapons[w.def.evolveTo].icon, color: 'gold',
         }));
         if (choices.length === 1) SF.progression.applyChoice(pl, this, choices[0]);
@@ -346,6 +346,18 @@
         for (const l of this.lightning) {
           const a = 1 - l.t / l.life;
           const bw = l.width || 0;
+          if (l.electric) {
+            const start = R.toScreen(l.points[0].x, l.points[0].y);
+            const end = R.toScreen(l.points[1].x, l.points[1].y);
+            const angle = Math.atan2(end.y-start.y,end.x-start.x), len = Math.hypot(end.x-start.x,end.y-start.y);
+            ctx.save(); ctx.translate(start.x,start.y); ctx.rotate(angle);
+            ctx.fillStyle=pal.css('bolt0',a*0.13);ctx.fillRect(0,-bw/2,len,bw);
+            ctx.fillStyle=pal.css('bolt1',a*0.4);ctx.fillRect(0,-bw*0.3,len,bw*0.6);
+            // 同一条放电通道中的电丝全部在实际宽度内；不形成分叉攻击。
+            for(let i=-1;i<=1;i++)R.electricArc(ctx,0,i*bw*0.16,len,i*bw*0.16,
+              {time:l.t,amplitude:bw*0.22,width:i===0?2.4:1.1,alpha:a,seed:i+8});
+            ctx.restore();continue;
+          }
           ctx.strokeStyle = pal.css(l.color || 'bolt2', a);
           ctx.lineWidth = bw ? Math.max(2, bw * 0.5) : 1.5;
           ctx.beginPath();

@@ -1,0 +1,129 @@
+{
+  "date": "2026-11-08T06:56:08.830Z",
+  "results": [
+    "Autoplay rejection can retry on a real user gesture; requested Boss track resumes",
+    "Phase change keeps one running transport",
+    "Mute schedules no new voices; stop cancels queued notes and releases every source",
+    "Rapid track switching leaves no old voices or extra timers"
+  ],
+  "samples": [
+    {
+      "mode": "ice",
+      "duration": 1.2,
+      "filename": "01-ice-fracture.wav",
+      "peak": 0.28955698013305664,
+      "rms": 0.01719138750379952,
+      "nonfinite": 0,
+      "clipped": 0,
+      "tailRms": 0,
+      "windows": []
+    },
+    {
+      "mode": "boss",
+      "duration": 22,
+      "filename": "02-boss-pressure.wav",
+      "peak": 0.3647066056728363,
+      "rms": 0.04882807301708257,
+      "nonfinite": 0,
+      "clipped": 0,
+      "tailRms": 0,
+      "windows": [
+        0.05557279252480069,
+        0.05185793170841171,
+        0.05408745909122338,
+        0.050540522362297086,
+        0.04977443483232248,
+        0.049488847379264275,
+        0.043069454729009596,
+        0.04184246890636088,
+        0.03953204213316899,
+        0.04168068144272056,
+        0.04624338928262618
+      ]
+    },
+    {
+      "mode": "mix",
+      "duration": 4.5,
+      "filename": "03-counter-in-boss-mix.wav",
+      "peak": 0.36117666959762573,
+      "rms": 0.045728475465648025,
+      "nonfinite": 0,
+      "clipped": 0,
+      "tailRms": 0,
+      "windows": []
+    },
+    {
+      "mode": "effect",
+      "effect": "heatReady",
+      "duration": 1.2,
+      "filename": "04-heat-ready.wav",
+      "peak": 0.050281964242458344,
+      "rms": 0.0036754654340010323,
+      "nonfinite": 0,
+      "clipped": 0,
+      "tailRms": 0,
+      "windows": []
+    },
+    {
+      "mode": "effect",
+      "effect": "fireOverdrive",
+      "duration": 1.2,
+      "filename": "05-fire-overdrive.wav",
+      "peak": 0.10346085578203201,
+      "rms": 0.0062140755747891,
+      "nonfinite": 0,
+      "clipped": 0,
+      "tailRms": 0,
+      "windows": []
+    },
+    {
+      "mode": "effect",
+      "effect": "capacitorReady",
+      "duration": 1.2,
+      "filename": "06-capacitor-ready.wav",
+      "peak": 0.061495341360569,
+      "rms": 0.006571834918071146,
+      "nonfinite": 0,
+      "clipped": 0,
+      "tailRms": 0,
+      "windows": []
+    },
+    {
+      "mode": "effect",
+      "effect": "railBurst",
+      "duration": 1.2,
+      "filename": "07-rail-burst.wav",
+      "peak": 0.26613861322402954,
+      "rms": 0.01879936657565264,
+      "nonfinite": 0,
+      "clipped": 0,
+      "tailRms": 0,
+      "windows": []
+    },
+    {
+      "mode": "effect",
+      "effect": "shootBolt",
+      "duration": 1.2,
+      "filename": "08-rail-discharge.wav",
+      "peak": 0.1459309160709381,
+      "rms": 0.0073025317047644535,
+      "nonfinite": 0,
+      "clipped": 0,
+      "tailRms": 0,
+      "windows": []
+    },
+    {
+      "mode": "effect",
+      "effect": "laserStart",
+      "duration": 1.2,
+      "filename": "09-laser-discharge.wav",
+      "peak": 0.04486526548862457,
+      "rms": 0.0021455832467334505,
+      "nonfinite": 0,
+      "clipped": 0,
+      "tailRms": 0,
+      "windows": []
+    }
+  ],
+  "errors": []
+}

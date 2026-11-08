@@ -43,7 +43,7 @@ test('理想 60Hz 命中也需至少 30 秒蓄满，15 秒期间不积热，启�
   assert.ok(activeFrames * STEP / 180 <= 1 / 3 + STEP);
 });
 test('不足 15 格、其它机体、停滞和死亡均不能开启；满热可长期保存', () => {
-  for (const char of ['vega', 'firefly', 'dawn', 'thunder']) {
+  for (const char of ['vega', 'firefly', 'thunder']) {
     const g = fixture(char), pl = g.player; pl.weapons = []; pl.heat = 14;
     assert.equal(pl.activateFireOverdrive(), false); pl.heat = 15;
     if (char !== 'vega') { assert.equal(pl.activateFireOverdrive(), false); continue; }
@@ -59,11 +59,11 @@ test('所有火武常态 ×1.5 / 超载 ×0.8，开始与结束按比例保存�
     near(w.cooldownDuration(), original * 1.5); w.cdTimer = w.cooldownDuration() * 0.4;
     activate(pl); near(w.cooldownDuration(), original * 0.8); near(w.cdTimer / w.cooldownDuration(), 0.4);
     pl.setFireOverdrive(0); near(w.cdTimer / w.cooldownDuration(), 0.4);
-    const other = fixture('dawn', id); near(other.player.weapons[0].cooldownDuration(), SF.weapons[id].base.cooldown * (w.def.cooldownMul || 1) * 1.5);
+    const other = fixture('thunder', id); near(other.player.weapons[0].cooldownDuration(), SF.weapons[id].base.cooldown * (w.def.cooldownMul || 1) * 1.5);
   }
 });
-test('超载不加速冰武/盾盘/激光/电磁蓄力，也不重置非火武冷却', () => {
-  for (const id of ['orb', 'mirrorWheel', 'shieldDisc', 'chain', 'laser']) {
+test('超载不加速冰武/激光/电磁蓄力，也不重置非火武冷却', () => {
+  for (const id of ['orb', 'mirrorWheel', 'chain', 'laser']) {
     const g = fixture('vega', id), pl = g.player, w = pl.weapons[0];
     const cd = w.cooldownDuration(), timer = w.cdTimer, charge = w.spec.charge ? w.chargeDuration() : null;
     activate(pl); near(w.cooldownDuration(), cd); near(w.cdTimer, timer);
@@ -84,7 +84,7 @@ test('焰锋飞刃 3.6/9 秒、导弹 9.6/24 秒，常态叠层与发射快照�
   }
 });
 test('其它角色火武时长不增强、不叠层，也不显示火苗', () => {
-  for (const char of ['firefly', 'dawn', 'thunder']) for (const id of ['blade', 'prism', 'missile', 'nuke']) {
+  for (const char of ['firefly', 'thunder']) for (const id of ['blade', 'prism', 'missile', 'nuke']) {
     const g = fixture(char, id), w = g.player.weapons[0], e = target(g,80,0,'boss2');
     w.fire(g); const p = SF.projectiles.list[0];
     near(p.burnDuration, (w.spec.burnDuration || 3) * 0.8);
@@ -124,7 +124,7 @@ test('不设置层数上限，500 层仍逐层到期并完整清理', () => {
   const g = fixture(), e = target(g);
   for (let i = 0; i < 500; i++) e.applyBurn(1, 0.1, { stack: true });
   assert.equal(e.burns.length, 500); e.update(0.2, g);
-  near(e.maxHp - e.hp, 50); assert.equal(e.burns.length, 0); near(e.burnDps, 0); near(e.burnIceGuardT, 0);
+  near(e.maxHp - e.hp, 50); assert.equal(e.burns.length, 0); near(e.burnDps, 0);
 });
 test('常态刷新仅修改常态条目，不能续超载层；超载结束也不抹掉剩余层', () => {
   const g = fixture(), pl = g.player, e = target(g); activate(pl);
@@ -142,20 +142,19 @@ for (const id of ['prism', 'nuke']) test(id + '：同轮多弹/穿透/爆炸对�
   for (const e of enemies) assert.equal(e.burns.length, 2);
   near(first.remaining, 0.3);
 });
-test('蔓延只传播一层及剩余寿命，不复制总层数/DPS，不刷新抗冰', () => {
+test('蔓延只传播一层及剩余寿命，不复制总层数/DPS，保留冰系兼容', () => {
   const g = fixture(), e = target(g), next = target(g, 100); g.player.stats.resonance.fire = true;
   e.applyBurn(10, 1, { stack: true }); e.applyBurn(20, 2, { stack: true, iceGuard: true });
   e.update(0.7, g);
-  assert.equal(next.burns.length, 1); near(next.burnDps, 20); near(next.burnT, 1.3); near(next.burnIceGuardT, 1.3);
-  next.applyBurn(1, 3); near(next.burns[0].remaining, 1.3); near(next.burnIceGuardT, 1.3);
+  assert.equal(next.burns.length, 1); near(next.burnDps, 20); near(next.burnT, 1.3);
+  next.applyBurn(1, 3); near(next.burns[0].remaining, 1.3);
 });
-test('普通飞刃续烧不能延长导弹抗冰时间，独立层的抗冰随该层到期', () => {
-  const g = fixture(), e = target(g);
-  e.applyBurn(4, 1, { iceGuard: true }); e.update(0.6, g); e.applyBurn(6, 2); e.update(0.5, g);
-  near(e.burnIceGuardT, 0); assert.ok(e.burnT > 0);
-  e.applyBurn(4, 0.3, { stack: true, iceGuard: true }); e.applyBurn(8, 1, { stack: true });
-  e.update(0.4, g); near(e.burnIceGuardT, 0); assert.ok(e.burns.some(b => b.stacked));
+test('灼烧期间仍可冻结，冰系控制不清除灼烧', () => {
+  const g=fixture(), e=target(g);
+  e.applyBurn(4, 2); e.applySlow(0.5, 0.6);
+  assert.ok(e.freezeT > 0 && e.burnT === 2);
 });
+
 test('同一逻辑步烧死的敌人不再造成接触伤害', () => {
   const g = fixture(), e = target(g, 0, 0), hp = g.player.hp; e.hp = 0.01;
   e.applyBurn(10, 1); g.enemies.update(STEP, g); assert.ok(e.dead); near(g.player.hp, hp);
@@ -170,6 +169,6 @@ test('Space 独立触发且按住不重复，面板仍能用空格确认，J/Ent
   assert.ok(SF.input.isPressed('confirm')); assert.equal(SF.input.isPressed('skill'), false);
   callbacks.get('blur')(); assert.equal(SF.input.isPressed('confirm'), false); assert.equal(SF.input.isHeld('skill'), false);
 });
-const out = path.join(__dirname, '..', 'gui-test-screenshots', 'balance-v1'); fs.mkdirSync(out, { recursive: true });
+const out = path.join(__dirname, '..', 'gui-test-screenshots', 'v2.0'); fs.mkdirSync(out, { recursive: true });
 fs.writeFileSync(path.join(out, 'fire-tests.json'), JSON.stringify({ results }, null, 2) + '\n');
 console.log(`FIRE OVERDRIVE: ${results.filter(r => r.pass).length}/${results.length} passed`);

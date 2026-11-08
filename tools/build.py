@@ -31,10 +31,10 @@ def main():
     # 图片本地内嵌，双击成品即可离线游玩。原作署名随包保留。
     assets = {
         path.relative_to(ROOT).as_posix(): 'data:image/webp;base64,' + base64.b64encode(path.read_bytes()).decode('ascii')
-        for path in sorted((ROOT / 'assets' / 'art').glob('*.webp'))
+        for path in sorted((ROOT / 'assets' / 'art').glob('*.webp')) if path.stem != 'dawn'
     }
-    if len(assets) != 16:
-        raise SystemExit('[build] ERROR: 美术素材不完整；需要 assets/art/ 下的 16 张图片')
+    if len(assets) != 15:
+        raise SystemExit('[build] ERROR: 美术素材不完整；需要 assets/art/ 下的 15 张在用图片')
     embedded = '<script>window.SF = window.SF || {}; SF.embeddedAssets = ' + json.dumps(assets) + ';</script>\n'
     credit = '<!-- Artwork: MillionthVector / CC BY 4.0. Adapted colors, crops, sizes and player hull details. https://millionthvector.blogspot.com/p/free-sprites.html | https://creativecommons.org/licenses/by/4.0/ -->\n'
     credit += '<!-- Frost particles: Kenney Particle Pack / CC0. https://kenney.nl/assets/particle-pack | https://creativecommons.org/publicdomain/zero/1.0/ -->\n'

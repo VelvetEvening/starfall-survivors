@@ -1,0 +1,641 @@
+{
+  "results": [
+    {
+      "name": "真实鼠标：满仓只发一炮，按住不连发；P 暂停保留充能",
+      "charges": 0,
+      "damage": 435.60000000000036
+    },
+    {
+      "name": "真实空格：15 格手动开启、按住不重放、J/Enter 不开、暂停不泄漏、停滞不缓存"
+    },
+    {
+      "name": "desktop 四张进化卡完整显示，第四项键鼠可选",
+      "layout": {
+        "cardW": 101.5,
+        "x0": 16,
+        "y0": 66
+      }
+    },
+    {
+      "name": "desktop vega 特性说明不裁切，鼠标关闭位置正确",
+      "bounds": {
+        "panel": {
+          "x": 84,
+          "y": 60,
+          "w": 312,
+          "h": 150
+        },
+        "close": {
+          "x": 369,
+          "y": 68,
+          "w": 19,
+          "h": 18
+        }
+      }
+    },
+    {
+      "name": "desktop firefly 特性说明不裁切，鼠标关闭位置正确",
+      "bounds": {
+        "panel": {
+          "x": 84,
+          "y": 60,
+          "w": 312,
+          "h": 150
+        },
+        "close": {
+          "x": 369,
+          "y": 68,
+          "w": 19,
+          "h": 18
+        }
+      }
+    },
+    {
+      "name": "desktop thunder 特性说明不裁切，鼠标关闭位置正确",
+      "bounds": {
+        "panel": {
+          "x": 84,
+          "y": 72,
+          "w": 312,
+          "h": 126
+        },
+        "close": {
+          "x": 369,
+          "y": 80,
+          "w": 19,
+          "h": 18
+        }
+      }
+    },
+    {
+      "name": "desktop vega charging",
+      "detail": {
+        "status": {
+          "label": "超载",
+          "value": "7 / 15",
+          "pct": 0.4666666666666667,
+          "segments": 15,
+          "color": "fire1",
+          "ready": false,
+          "detail": "下次积热 2.0s"
+        },
+        "withinHud": true,
+        "heat": 7,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "desktop vega ready",
+      "detail": {
+        "status": {
+          "label": "超载",
+          "value": "空格 · 开启超载",
+          "pct": 1,
+          "segments": 15,
+          "color": "fire1",
+          "ready": true,
+          "detail": "已储存 · 持续 15s"
+        },
+        "withinHud": true,
+        "heat": 15,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "desktop vega active",
+      "detail": {
+        "status": {
+          "label": "超载",
+          "value": "超载中 11.4s",
+          "pct": 0.76,
+          "segments": 1,
+          "color": "fire1",
+          "ready": true,
+          "detail": "火武加速 · 独立灼烧叠层"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 516,
+        "projectiles": [
+          {
+            "kind": "blade"
+          }
+        ]
+      }
+    },
+    {
+      "name": "desktop vega stasis",
+      "detail": {
+        "status": {
+          "label": "超载",
+          "value": "超载中 11.4s",
+          "pct": 0.76,
+          "segments": 1,
+          "color": "fire1",
+          "ready": true,
+          "detail": "停滞 · 技能计时暂停"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 516,
+        "projectiles": [
+          {
+            "kind": "blade"
+          }
+        ]
+      }
+    },
+    {
+      "name": "desktop thunder charging",
+      "detail": {
+        "status": {
+          "label": "电容",
+          "value": "2 / 3",
+          "pct": 0.86,
+          "segments": 3,
+          "color": "bolt1",
+          "ready": false,
+          "detail": "点击单发 · 等满仓聚能"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 2,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "desktop thunder ready",
+      "detail": {
+        "status": {
+          "label": "电容",
+          "value": "聚能就绪  3/3",
+          "pct": 1,
+          "segments": 3,
+          "color": "bolt1",
+          "ready": true,
+          "detail": "点击 · 三发合为一炮"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 3,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "desktop thunder burst",
+      "detail": {
+        "status": {
+          "label": "电容",
+          "value": "聚能释放",
+          "pct": 0,
+          "segments": 3,
+          "color": "bolt1",
+          "ready": false,
+          "detail": "下一发 7.2s"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 3207.6000000000004,
+        "projectiles": [
+          {
+            "kind": "railgun",
+            "empowered": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "desktop thunder beam",
+      "detail": {
+        "status": {
+          "label": "电容",
+          "value": "聚能释放",
+          "pct": 0,
+          "segments": 3,
+          "color": "bolt1",
+          "ready": false,
+          "detail": "下一发 4.8s"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 12830.4,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "desktop firefly window",
+      "detail": {
+        "status": {
+          "label": "防反",
+          "value": "防反中",
+          "pct": 0,
+          "segments": 1,
+          "color": "ice1",
+          "ready": true,
+          "detail": ""
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "desktop firefly ready",
+      "detail": {
+        "status": {
+          "label": "防反",
+          "value": "防反成功",
+          "pct": 0,
+          "segments": 1,
+          "color": "ice1",
+          "ready": true,
+          "detail": "穿透冰弹已备"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": true,
+        "burstEffects": 0,
+        "damage": 91.80000000000001,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "desktop firefly impact",
+      "detail": {
+        "status": {
+          "label": "防反",
+          "value": "防反成功",
+          "pct": 0,
+          "segments": 1,
+          "color": "ice1",
+          "ready": true,
+          "detail": ""
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 3,
+        "damage": 527.33592,
+        "projectiles": [
+          {
+            "kind": "frostShard",
+            "empowered": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "small 四张进化卡完整显示，第四项键鼠可选",
+      "layout": {
+        "cardW": 101.5,
+        "x0": 16,
+        "y0": 66
+      }
+    },
+    {
+      "name": "small vega 特性说明不裁切，鼠标关闭位置正确",
+      "bounds": {
+        "panel": {
+          "x": 84,
+          "y": 60,
+          "w": 312,
+          "h": 150
+        },
+        "close": {
+          "x": 369,
+          "y": 68,
+          "w": 19,
+          "h": 18
+        }
+      }
+    },
+    {
+      "name": "small firefly 特性说明不裁切，鼠标关闭位置正确",
+      "bounds": {
+        "panel": {
+          "x": 84,
+          "y": 60,
+          "w": 312,
+          "h": 150
+        },
+        "close": {
+          "x": 369,
+          "y": 68,
+          "w": 19,
+          "h": 18
+        }
+      }
+    },
+    {
+      "name": "small thunder 特性说明不裁切，鼠标关闭位置正确",
+      "bounds": {
+        "panel": {
+          "x": 84,
+          "y": 72,
+          "w": 312,
+          "h": 126
+        },
+        "close": {
+          "x": 369,
+          "y": 80,
+          "w": 19,
+          "h": 18
+        }
+      }
+    },
+    {
+      "name": "small vega charging",
+      "detail": {
+        "status": {
+          "label": "超载",
+          "value": "7 / 15",
+          "pct": 0.4666666666666667,
+          "segments": 15,
+          "color": "fire1",
+          "ready": false,
+          "detail": "下次积热 2.0s"
+        },
+        "withinHud": true,
+        "heat": 7,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "small vega ready",
+      "detail": {
+        "status": {
+          "label": "超载",
+          "value": "空格 · 开启超载",
+          "pct": 1,
+          "segments": 15,
+          "color": "fire1",
+          "ready": true,
+          "detail": "已储存 · 持续 15s"
+        },
+        "withinHud": true,
+        "heat": 15,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "small vega active",
+      "detail": {
+        "status": {
+          "label": "超载",
+          "value": "超载中 11.4s",
+          "pct": 0.76,
+          "segments": 1,
+          "color": "fire1",
+          "ready": true,
+          "detail": "火武加速 · 独立灼烧叠层"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 516,
+        "projectiles": [
+          {
+            "kind": "blade"
+          }
+        ]
+      }
+    },
+    {
+      "name": "small vega stasis",
+      "detail": {
+        "status": {
+          "label": "超载",
+          "value": "超载中 11.4s",
+          "pct": 0.76,
+          "segments": 1,
+          "color": "fire1",
+          "ready": true,
+          "detail": "停滞 · 技能计时暂停"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 516,
+        "projectiles": [
+          {
+            "kind": "blade"
+          }
+        ]
+      }
+    },
+    {
+      "name": "small thunder charging",
+      "detail": {
+        "status": {
+          "label": "电容",
+          "value": "2 / 3",
+          "pct": 0.86,
+          "segments": 3,
+          "color": "bolt1",
+          "ready": false,
+          "detail": "点击单发 · 等满仓聚能"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 2,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "small thunder ready",
+      "detail": {
+        "status": {
+          "label": "电容",
+          "value": "聚能就绪  3/3",
+          "pct": 1,
+          "segments": 3,
+          "color": "bolt1",
+          "ready": true,
+          "detail": "点击 · 三发合为一炮"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 3,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "small thunder burst",
+      "detail": {
+        "status": {
+          "label": "电容",
+          "value": "聚能释放",
+          "pct": 0,
+          "segments": 3,
+          "color": "bolt1",
+          "ready": false,
+          "detail": "下一发 7.2s"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 3207.6000000000004,
+        "projectiles": [
+          {
+            "kind": "railgun",
+            "empowered": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "small thunder beam",
+      "detail": {
+        "status": {
+          "label": "电容",
+          "value": "聚能释放",
+          "pct": 0,
+          "segments": 3,
+          "color": "bolt1",
+          "ready": false,
+          "detail": "下一发 4.8s"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 12830.4,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "small firefly window",
+      "detail": {
+        "status": {
+          "label": "防反",
+          "value": "防反中",
+          "pct": 0,
+          "segments": 1,
+          "color": "ice1",
+          "ready": true,
+          "detail": ""
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 0,
+        "damage": 0,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "small firefly ready",
+      "detail": {
+        "status": {
+          "label": "防反",
+          "value": "防反成功",
+          "pct": 0,
+          "segments": 1,
+          "color": "ice1",
+          "ready": true,
+          "detail": "穿透冰弹已备"
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": true,
+        "burstEffects": 0,
+        "damage": 91.80000000000001,
+        "projectiles": []
+      }
+    },
+    {
+      "name": "small firefly impact",
+      "detail": {
+        "status": {
+          "label": "防反",
+          "value": "防反成功",
+          "pct": 0,
+          "segments": 1,
+          "color": "ice1",
+          "ready": true,
+          "detail": ""
+        },
+        "withinHud": true,
+        "heat": 0,
+        "charges": 0,
+        "empowered": false,
+        "burstEffects": 3,
+        "damage": 527.33592,
+        "projectiles": [
+          {
+            "kind": "frostShard",
+            "empowered": true
+          }
+        ]
+      }
+    },
+    {
+      "name": "火苗像素验证：1–5 层增强，5/10 层相同、伤害翻倍，其它机体隐藏",
+      "flameAudit": {
+        "same": true,
+        "pixels": 423,
+        "width": 29,
+        "height": 22,
+        "ordinaryHidden": true,
+        "oneDiffers": true,
+        "ratio": 2
+      }
+    }
+  ],
+  "errors": []
+}

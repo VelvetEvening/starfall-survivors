@@ -166,7 +166,7 @@ test('电磁贯穿：扫过线段含敌人体积，高速不漏敌，重叠大�
   assert.equal(SF.projectiles.list[0].hitSet.size,3);
 });
 test('其它机体的电磁炮伤害不受磁暴专属倍率影响',()=>{
-  for(const char of ['vega','firefly','dawn']) for(const weapon of ['chain','tempest']) {
+  for(const char of ['vega','firefly']) for(const weapon of ['chain','tempest']) {
     const g=fixture(char,weapon),pl=g.player,w=pl.weapons[0],e=target(g);
     click(g,1); if(!w.spec.beam) flight(g);
     near(e.maxHp-e.hp,w.spec.damage*pl.stats.damageMul);
@@ -198,23 +198,6 @@ test('电磁炮进化：保存两发与蓄力比例，使用进化后芯片加�
     assert.equal(next.railgunBurstReady,charges===3); assert.equal(JSON.stringify(SF.save.profile),save);
   }
 });
-test('铁壁：只计实际盾伤，震荡与强化盾击独立，释放声不混入受伤声',()=>{
-  const g=fixture('dawn'),pl=g.player,e=target(g,50); pl.addWeapon('shieldDisc');
-  pl.shield=10; pl.takeDamage(2,{game:g}); assert.equal(pl.armorShockCharge,0);
-  pl.takeDamage(12,{game:g}); assert.equal(pl.armorShockCharge,10); assert.ok(pl.shieldDiscEmpowered);
-  pl.invulnT=0; pl.shield=2; pl.takeDamage(4,{game:g});
-  near(e.maxHp-e.hp,28*1.2); assert.equal(pl.armorShockCharge,0); assert.ok(pl.shieldDiscEmpowered);
-  assert.equal(sounds.armorShock,1); assert.equal(sounds.playerHurt||0,0);
-  assert.equal(SF.hud.characterStatus(pl).value,'震荡释放');
-});
-test('铁壁：冷却内计能封顶，单纯冷却结束不自动偷发，下一次实吸盾伤才释放',()=>{
-  const g=fixture('dawn'),pl=g.player; target(g,50);
-  pl.armorShockCd=0.5; pl.shield=10; pl.takeDamage(12,{game:g}); pl.invulnT=0; pl.shield=10; pl.takeDamage(12,{game:g});
-  assert.equal(pl.armorShockCharge,12); pl.weapons=[]; pl.update(0.6,g);
-  assert.equal(sounds.armorShock||0,0); assert.ok(SF.hud.characterStatus(pl).detail.includes('下次盾伤'));
-  pl.invulnT=0; pl.shield=1; pl.takeDamage(3,{game:g}); assert.equal(sounds.armorShock,1);
-  pl.invulnT=0; pl.shield=0; pl.takeDamage(3,{game:g}); assert.equal(pl.armorShockCharge,0);
-});
 test('霜翎：每窗一次反制，HUD 显示成功及一发穿透储备，停滞保留储备',()=>{
   const g=fixture('firefly'),pl=g.player,e=target(g,40); pl.addWeapon('mirrorWheel');
   pl.phaseInvulnT=0.5; pl.takeDamage(10,{game:g,attacker:e}); pl.takeDamage(10,{game:g,attacker:e});
@@ -233,7 +216,7 @@ test('霜翎：密集敌群每个接触目标只爆一次，旁侧波及不递�
   assert.ok(side.hp<side.maxHp); assert.equal(side.iceStacks,3);
   SF.projectiles.update(0,g); assert.equal(SF.projectiles.frostBursts.length,12);
 });
-test('霜翎：强化冰弹对两位 Boss 不冻结，抗冰灼烧仍减伤和免疫冰蚀',()=>{
+test('霜翎：强化冰弹对两位 Boss 不冻结，灼烧与冰蚀共存',()=>{
   for(const kind of ['boss','boss2']) {
     const g=fixture('firefly','mirrorWheel',6),w=g.player.weapons[0],e=target(g,80,0,kind);
     w.frostEmpowered=true; w.fire(g); flight(g);
@@ -242,35 +225,35 @@ test('霜翎：强化冰弹对两位 Boss 不冻结，抗冰灼烧仍减伤和�
     const fromX=e.x; SF.bossAI.updateBoss(e,STEP,g);
     near((fromX-e.x)/(e.speed*STEP),1-(1-e.slowFactor)*SF.config.BOSS_SLOW_EFFECT);
     const h=e.hp; e.applyBurn(4,8,{iceGuard:true}); w.frostEmpowered=true; w.fire(g); flight(g);
-    near(h-e.hp,w.spec.damage*0.9*0.5); assert.equal(e.iceStacks,0); assert.equal(e.slowT,0);
+    near(h-e.hp,w.spec.damage*0.9*1.1); assert.equal(e.iceStacks,2); assert.ok(e.slowT>0);
   }
 });
-test('四机体：暂停冻结资源，死亡/重开清空储备，角色和存档 ID 保持不变',()=>{
-  for(const char of ['vega','firefly','thunder','dawn']) {
+test('三机体：暂停冻结资源，死亡/重开清空储备，角色和存档 ID 保持不变',()=>{
+  for(const char of ['vega','firefly','thunder']) {
     const g=fixture(char,null,1,true),pl=g.player;
-    pl.heat=15; pl.fireOverdriveT=3; pl.armorShockCharge=10; pl.shieldDiscEmpowered=true;
+    pl.heat=15; pl.fireOverdriveT=3;
     pl.weapons[0].charges=3; pl.weapons[0].frostEmpowered=true; pl.weapons[0].chargeT=1;
     g.state='pause'; for(let i=0;i<120;i++)g.update(STEP);
     assert.equal(pl.heat,15); assert.equal(pl.fireOverdriveT,3); assert.equal(pl.weapons[0].chargeT,1);
-    pl.die(); assert.equal(pl.heat,0); assert.equal(pl.fireOverdriveT,0); assert.equal(pl.armorShockCharge,0);
+    pl.die(); assert.equal(pl.heat,0); assert.equal(pl.fireOverdriveT,0);
     assert.equal(pl.weapons[0].charges,0); assert.equal(pl.weapons[0].frostEmpowered,false);
     g.reset(char,'normal'); assert.equal(g.player.char.id,char); assert.equal(g.player.weapons[0].level,6);
-    assert.equal(g.player.heat,0); assert.equal(g.player.armorShockCharge,0);
+    assert.equal(g.player.heat,0);
     assert.equal(SF.projectiles.list.length,0); assert.equal(SF.projectiles.frostBursts.length,0);
   }
 });
 
-test('四机体 × 零/满工坊 × 敌潮/双 Boss：24 场 90 秒战斗压力回归',()=>{
-  for(const char of ['vega','firefly','thunder','dawn']) for(const workshop of [false,true]) {
+test('三机体 × 零/满工坊 × 敌潮/双 Boss：18 场 90 秒战斗压力回归',()=>{
+  for(const char of ['vega','firefly','thunder']) for(const workshop of [false,true]) {
     for(const encounter of ['crowd','boss','boss2']) {
       const g=fixture(char,null,1,workshop),pl=g.player;
       const originalHp=pl.stats.maxHp;
       // 固定成型装备 + 生命保护，用于更新链与频率压力检查，不推算真人生存率。
       pl.weapons[0].level=6;pl.weapons[0].recalc();
-      const partner={vega:'missile',firefly:'mirrorWheel',thunder:'laser',dawn:'shieldDisc'}[char];
+      const partner={vega:'missile',firefly:'mirrorWheel',thunder:'laser',}[char];
       pl.addWeapon(partner,6);
-      const nodes=Object.values(SF.constellations).filter(n=>n.con===pl.char.homeTree);
-      for(const n of nodes.slice(0,encounter==='boss2'?6:3))pl.litStars.add(n.id);
+      const nodes=Object.entries(SF.constellations).filter(([,n])=>n.con===pl.char.homeTree);
+      for(const [id] of nodes.slice(0,encounter==='boss2'?6:3))pl.litStars.add(id);
       pl.recalcStats();pl.stats.critChance=0;
       pl.stats.maxHp=pl.hp=1e7;
       g.openLevelUp=()=>{g.pendingLevelUps=0;};
@@ -285,13 +268,13 @@ test('四机体 × 零/满工坊 × 敌潮/双 Boss：24 场 90 秒战斗压力�
       }
       let duration=0,peakEnemies=0,peakShots=0,hpDamage=0,firstBurst=null;
       const startHp=pl.hp;
-      SF.input.isPressed=act=>act==='skill'&&pl.heat>=SF.config.VEGA_HEAT.threshold;
+      SF.input.isPressed=act=>act==='skill'&&(pl.heat>=SF.config.VEGA_HEAT.threshold || (char==='firefly' && pl.cycleInvulnCd===0));
       for(let frame=0;frame<90*60;frame++) {
         const time=frame*STEP;
         // 绕目标飞行，遇近弹略向外避让；固定输入足以覆盖移动、瞄准与受击路径。
         const anchor=boss&&!boss.dead?boss:{x:0,y:0};
         const angle=Math.atan2(pl.y-anchor.y,pl.x-anchor.x);
-        const preferred=char==='dawn'?42:char==='firefly'?70:100;
+        const preferred=char==='firefly'?70:100;
         const distance=Math.hypot(pl.x-anchor.x,pl.y-anchor.y);
         const radial=(preferred-distance)*0.05;
         let mx=-Math.sin(angle)+Math.cos(angle)*radial,my=Math.cos(angle)+Math.sin(angle)*radial;
@@ -312,7 +295,7 @@ test('四机体 × 零/满工坊 × 敌潮/双 Boss：24 场 90 秒战斗压力�
         peakShots=Math.max(peakShots,SF.projectiles.list.length);
         if(firstBurst===null&&(sounds.fireOverdrive||sounds.railBurst||sounds.armorShock||sounds.iceRetaliate))firstBurst=duration;
         assert.ok(Number.isFinite(pl.x)&&Number.isFinite(pl.hp)&&Number.isFinite(g.runStats.damage));
-        assert.ok(pl.heat<=SF.config.VEGA_HEAT.threshold&&pl.armorShockCharge<=SF.config.ARMOR_SHOCK.threshold);
+        assert.ok(pl.heat<=SF.config.VEGA_HEAT.threshold);
         for(const w of pl.weapons)assert.ok(w.charges>=0&&w.charges<=pl.stats.railgunStorage);
         if(boss?.dead)break;
       }
@@ -333,7 +316,7 @@ test('四机体 × 零/满工坊 × 敌潮/双 Boss：24 场 90 秒战斗压力�
   SF.input.isPressed=()=>false;
 });
 
-const out=path.join(__dirname,'..','gui-test-screenshots','characters');
+const out=path.join(__dirname,'..','gui-test-screenshots','v2.0');
 fs.mkdirSync(out,{recursive:true});
 fs.writeFileSync(path.join(out,'logic-audit.json'),JSON.stringify({results,measurements,scenarios},null,2));
 console.log(`CHARACTER TESTS: ${results.filter(r=>r.pass).length}/${results.length} passed`);

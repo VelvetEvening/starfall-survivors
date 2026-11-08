@@ -6,7 +6,7 @@
 - src/sim/、src/growth/、src/engine/：机制实现。
 - src/ui/、src/render/、src/core/audio.js：交互、表现和音频。
 - src/core/save.js：唯一持久化出口；线上 ServerLayer 不能绕过该边界。
-- tools/build.py：将 index.html、所有 src/ 脚本和 16 张 WebP 打包为 starfall.html。
+- tools/build.py：将 index.html、所有 src/ 脚本和 15 张当前使用的 WebP 打包为 starfall.html；退役 dawn 素材不再加载或打包。
 
 ## 2. 每次源码改动
 
@@ -14,10 +14,12 @@
 2. 新增或使用 SF.util 时运行 node tools/check_destructure.js。
 3. 涉及武器、敌人、奖励或数值时运行 node tools/verify_fixes.js。
 4. 运行 node tools/smoke_test.js：450 秒步进、双 BOSS、异常数为 0；运行 node tools/game_flow_test.js，覆盖真实 60Hz 的 BOSS1 出场边界和进化宝箱同帧升级队列；运行 node tools/local_v1_test.js，覆盖难度纪录重载及存档事务。
-5. 涉及四机体时运行 node tools/character_test.js；涉及护盾时运行 node tools/shield_guard_test.js；涉及火系时运行 node tools/fire_overdrive_test.js。
-6. 涉及输入、UI、美术、音频或启动流程时，按条件运行 visual_smoke.js、character_visual_smoke.js、frost_visual_smoke.js、audio_smoke.js，并查看生成截图，不只看脚本退出码。
-7. 改源码后运行 py tools/build.py，核对 starfall.html 包含改动、16 张素材和署名；必要时验证 file:// 断网启动。
+5. 涉及角色时运行 node tools/character_test.js；涉及火系时运行 node tools/fire_overdrive_test.js；v2 防反、材料、拾取和激光运行 node tools/v2_test.js。旧 shield_guard_test 已随护盾机制退役。
+6. 涉及输入、UI、美术、音频或启动流程时，按条件运行 visual_smoke.js、character_visual_smoke.js、frost_visual_smoke.js、v2_visual_smoke.js、audio_smoke.js，并查看生成截图，不只看脚本退出码。
+7. 改源码后运行 py tools/build.py，核对 starfall.html 包含改动、15 张素材和署名；必要时验证 file:// 断网启动。
 8. 运行 git diff --check，检查文档、测试报告、源码和成品属于同一版本。
+
+当前证据目录为 gui-test-screenshots/v2.0/，历史目录不覆盖。v2_test 必须验证叠满矩阵与材料、注入旧延时属性后，防反仍在第 12 个 60Hz 后续步结束，且普通受击无敌不能继续触发防反。服务端对应为 6 个 30Hz 后续步。
 
 ## 3. 线上化前的冻结门槛
 
