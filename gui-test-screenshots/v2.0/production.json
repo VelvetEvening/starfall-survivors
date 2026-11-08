@@ -1,0 +1,41 @@
+{
+  "version": "v2.0",
+  "release": "20261108-v2.0",
+  "verifiedAt": "2026-11-08T07:00:37.172Z",
+  "url": "https://starfalling.site/",
+  "artifactSha256": "756abb3b3331828becf0614228c39e46e243b71387c38fd27296517064903a7f",
+  "results": [
+    {
+      "check": "HTTPS artifact /",
+      "status": 200,
+      "sha256": "756abb3b3331828becf0614228c39e46e243b71387c38fd27296517064903a7f"
+    },
+    {
+      "check": "HTTPS artifact /starfall.html",
+      "status": 200,
+      "sha256": "756abb3b3331828becf0614228c39e46e243b71387c38fd27296517064903a7f"
+    },
+    {
+      "check": "Existing API health",
+      "ok": true,
+      "rulesVersion": "online-v1"
+    },
+    {
+      "check": "Production v2 content",
+      "version": "v2.0",
+      "chars": [
+        "vega",
+        "firefly",
+        "thunder"
+      ],
+      "evolution": "frostLance",
+      "material": "frostLens",
+      "window": 0.2
+    },
+    {
+      "check": "Public page keyboard start, movement, pause and resume",
+      "ok": true
+    }
+  ],
+  "errors": []
+}

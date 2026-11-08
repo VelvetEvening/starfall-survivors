@@ -15,6 +15,7 @@
 
 ## 审查证据与历史快照
 
+- [V2_RELEASE.md](V2_RELEASE.md)：v2.0 正式发布、构建提交与哈希、公网验证和回滚材料。
 - [V2_ACCEPTANCE.md](V2_ACCEPTANCE.md)：当前 v2.0 变更、验收入口、测试结果和待试玩评估项。
 - [BUGFIX_AUDIT_20260911.md](BUGFIX_AUDIT_20260911.md)：本地与服务器 Bug 修复、死代码清理、测试和远端回滚材料。
 - BALANCE_AUDIT.md：v1 历史平衡审查结果与测试证据。

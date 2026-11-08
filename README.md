@@ -6,7 +6,7 @@
 ![tech](https://img.shields.io/badge/%E6%8A%80%E6%9C%AF-Canvas%202D%20%C2%B7%20%E9%9B%B6%E4%BE%9D%E8%B5%96-orange)
 ![size](https://img.shields.io/badge/%E4%BD%93%E7%A7%AF-%E5%8D%95%E6%96%87%E4%BB%B6%E5%8F%AF%E6%89%93%E5%8C%85-brightgreen)
 
-当前开发版 **v2.0**，分支 `v2.0`，供本地验收：三机体、主动防反、定向激光、元素适配图标与更宽松的补给拾取。变更与验收见 [v2 记录](docs/V2_ACCEPTANCE.md)，数值以 [平衡规格](docs/BALANCE_SPEC.md) 为准。本次没有发布到线上。
+当前正式版本 **v2.0**，已发布至 [starfalling.site](https://starfalling.site/)：三机体、主动防反、六条超武路线、元素适配图标与更宽松的补给拾取。正式分支 `main`，开发分支 `v2.0`，发布标签 `v2.0.0`。发布与回滚见 [发布记录](docs/V2_RELEASE.md)，玩法验收见 [v2 记录](docs/V2_ACCEPTANCE.md)，数值以 [平衡规格](docs/BALANCE_SPEC.md) 为准。
 
 ## 本地游玩
 

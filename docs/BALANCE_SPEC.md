@@ -1,6 +1,6 @@
 # 当前平衡规格
 
-更新日期：2026-11-08（v2.0 验收版）
+更新日期：2026-11-08（v2.0 正式静态版）
 定位：当前数值设计的可读规格；实际执行值以 src/data/config.js、weapons.js、passives.js、characters.js、enemies.js 为最终来源。
 
 ## 1. 难度与小怪质量
